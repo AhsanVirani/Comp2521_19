@@ -100,18 +100,21 @@ void IntListInsertInOrder (IntList L, int v)
 {
 	assert (L != NULL);
 	
+/////////////
 // CASE 1: Empty case
+////////////
+
 	if(L->size == 0)
 	{
 		struct IntListNode *n = newIntListNode (v);
 		n->data = v; n->next = NULL;
 		L->first = n; 
 		L->last = n;
-		L->size++;
 	}
 
-	
+/////////////
 // CASE 2: One node in list
+////////////
 		else if(L->size == 1)
 		{
 			IntListNode *temp = L->first;
@@ -130,10 +133,11 @@ void IntListInsertInOrder (IntList L, int v)
 					temp->next = n;
 					L->last = n;	
 				}
-				L->size++;	
 		}
-	
+
+/////////////
 // CASE 3: List size > 2
+////////////	
 
 		else
 		{
@@ -162,7 +166,6 @@ void IntListInsertInOrder (IntList L, int v)
 					L->last = n;
 				}
 				
-
 			// Insert in middle
 				else
 				{
@@ -170,8 +173,9 @@ void IntListInsertInOrder (IntList L, int v)
 					n->data = v; n->next = temp;
 					prev->next = n;
 				}
-			L->size++;
 		}
+// Increment list size by 1
+	L->size++;
 
 	// This is INCORRECT
 	//IntListInsert (L, v);
