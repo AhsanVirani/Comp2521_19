@@ -99,17 +99,15 @@ void IntListInsert (IntList L, int v)
 void IntListInsertInOrder (IntList L, int v)
 {
 	assert (L != NULL);
-	
+	struct IntListNode *n = newIntListNode (v);
+	n->data = v; n->next = NULL;
 /////////////
 // CASE 1: Empty case
 ////////////
 
 	if(L->size == 0)
 	{
-		struct IntListNode *n = newIntListNode (v);
-		n->data = v; n->next = NULL;
-		L->first = n; 
-		L->last = n;
+		L->first = L->last = n;
 	}
 
 /////////////
@@ -121,22 +119,19 @@ void IntListInsertInOrder (IntList L, int v)
 			// Insert at beginning
 			if(v < temp->data)
 			{
-				struct IntListNode *n = newIntListNode (v);
-				n->data = v; n->next = temp;
+				n->next = temp;
 				L->first = n;
 			}
 				// Insert at end
 				else
-				{
-					struct IntListNode *n = newIntListNode (v);
-					n->data = v; n->next = NULL;
-					temp->next = n;
-					L->last = n;	
+				{		
+					n->next = NULL;
+					temp->next = L->last = n;	
 				}
 		}
 
 /////////////
-// CASE 3: List size > 2
+// CASE 3: List size >= 2
 ////////////	
 
 		else
@@ -152,25 +147,20 @@ void IntListInsertInOrder (IntList L, int v)
 			// Head insert
 			if(temp == L->first)
 			{
-				struct IntListNode *n = newIntListNode (v);
-				n->data = v; n->next = temp;
+				n->next = temp;
 				L->first = n;
 			}
 
 			// Tail insert
 				else if(temp->next == NULL && (v > temp->data))
 				{
-					struct IntListNode *n = newIntListNode (v);
-					n->data = v; n->next = NULL;
-					temp->next = n;
-					L->last = n;
+					temp->next = L->last = n;
 				}
 				
 			// Insert in middle
 				else
 				{
-					struct IntListNode *n = newIntListNode (v);
-					n->data = v; n->next = temp;
+					n->next = temp;
 					prev->next = n;
 				}
 		}
