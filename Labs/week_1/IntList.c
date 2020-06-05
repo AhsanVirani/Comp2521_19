@@ -105,10 +105,7 @@ void IntListInsertInOrder (IntList L, int v)
 // CASE 1: Empty case
 ////////////
 
-	if(L->size == 0)
-	{
-		L->first = L->last = n;
-	}
+	if(L->size == 0)	L->first = L->last = n;
 
 /////////////
 // CASE 2: One node in list
@@ -152,11 +149,8 @@ void IntListInsertInOrder (IntList L, int v)
 			}
 
 			// Tail insert
-				else if(temp->next == NULL && (v > temp->data))
-				{
-					temp->next = L->last = n;
-				}
-				
+				else if(temp->next == NULL && (v > temp->data))	temp->next = L->last = n;
+							
 			// Insert in middle
 				else
 				{
