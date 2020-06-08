@@ -1,0 +1,22 @@
+target : source1 source2 ...
+	commands to build target from sources
+
+e.g
+
+game : main.o graphics.o world.o
+	gcc -o game main.o graphics.o world.o
+
+main.o : main.c graphics.h world.h
+	gcc -Wall -Werror -c graphics.c
+
+graphics.o : graphics.c world.h
+	gcc -Wall -Werror -c graphics.c
+
+world.o: world.c
+	gcc -Wall -Werror -c world.c
+
+Makefiles contain "Variables"
+e.g CC i.e. (gcc, 3c, dcc), CFLAGS i.e. (-Wall, -Werror), LDFLAGS
+
+stack.o: stack.c stack.h
+	$(CC) $(CFLAGS) -c stack.c

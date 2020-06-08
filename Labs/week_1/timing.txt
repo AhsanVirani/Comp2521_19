@@ -1,14 +1,35 @@
 Input	Initial	Has	Number	AvgTime	AvgTime
 Size	Order	Dups	of runs	forusel	forsort
-5000	random	no	N	T1sec	T2sec
-5000	sorted	no	N	T1sec	T2sec
-5000	reverse	no	N	T1sec	T2sec
-5000	random	yes	N	T1sec	T2sec
-5000	sorted	yes	N	T1sec	T2sec
-5000	reverse	yes	N	T1sec	T2sec
-10000	random	no	N	T1sec	T2sec
-10000	sorted	no	N	T1sec	T2sec
-10000	reverse	no	N	T1sec	T2sec
-10000	random	yes	N	T1sec	T2sec
-10000	sorted	yes	N	T1sec	T2sec
-10000	reverse	yes	N	T1sec	T2sec
+5000	random	no	10	0m0.045s	0m0.035s
+5000	sorted	no	10	0m0.060s	0m0.004s
+5000	reverse	no	10	0m0.006s	0m0.004s
+5000	random	yes	10	0m0.049s	0m0.040s
+5000	sorted	yes	10	0m0.060s	0m0.007s
+5000	reverse	yes	10	0m0.006s	0m0.006s
+10000	random	no	10	0m0.182s	0m0.070s
+10000	sorted	no	10	0m0.212s	0m0.010s
+10000	reverse	no	10	0m0.002s	0m0.002s
+10000	random	yes	10	0m0.185s	0m0.015s
+10000	sorted	yes	10	0m0.211s	0m0.010s
+10000	reverse	yes	10	0m0.010s	0m0.010s
+20000	random	no	10	0m0.923s	0m0.147s
+20000	sorted	no	10	0m0.819s	0m0.010s
+20000	reverse	no	10	0m0.010s	0m0.002s
+20000	random	yes	10	0m0.944s	0m0.017s
+20000	sorted	yes	10	0m0.821s	0m0.010s
+20000	reverse	yes	10	0m0.010s	0m0.010s
+100000	random	no	5	0m41.473s	0m0.887s
+100000	sorted	no	5	0m21.304s	0m0.030s
+100000	reverse	no	5	0m0.020s	0m0.030s
+100000	random	yes	5	0m43.547s	0m0.061s
+100000	sorted	yes	5	0m21.436s	0m0.030s
+100000	reverse	yes	5	0m0.040s	0m0.030s
+
+Explaination:
+Testing on small inputs doesn't show significant variations between the useIntList and linux built in sort command. 
+However, as the input size grows our function in useIntList tends to take longer time to complete the task. This occurs
+mainly because of the differences in the complexity of the algorithm. Our useIntList algorithm is made to work for all
+initial orders, such as random sorted, reverse sorted, sorted, with or without duplicates. The for loop makes the runs until
+the end of the list making the big Oh complexity O(n) -> Linear. The linux built in sort commands are specific to the type of 
+orderings it is sorting, and uses the best algorithm to deal with the specific program. For instance, O(logn) which is better than our O(n),
+hence better results. 

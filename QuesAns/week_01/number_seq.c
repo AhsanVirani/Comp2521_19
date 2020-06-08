@@ -41,16 +41,20 @@ get_value(char *argv[])
 void
 show_values(int start, int step, int finish)
 {	
+		int s;
 		if(start <= finish && step >= 0)		
-			{for(start; start <= finish; start+=step)	printf("%d\n", start);}
+		{
+			for(s = start; s <= finish; s+=step)	printf("%d\n", s);
+		}
 			else if(start < finish && step < 0)
 			{	fprintf(stderr, "Step must be positive in this case\n");
 				 exit(EXIT_FAILURE);
 			}
-			else if(start == finish && step <0)
-				{printf("%d\n", start);}
+			else if(start == finish && step <0)	printf("%d\n", start);
 			else if(start >= finish && step <= 0)		
-				{for(start; start >= finish; start+=step)	printf("%d\n", start);}
+			{
+				for(s = start; s >= finish; s+=step)	printf("%d\n", s);
+			}
 			else
 			{
 				fprintf(stderr, "Step must be negative in this case\n");
