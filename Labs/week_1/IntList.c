@@ -99,8 +99,10 @@ void IntListInsert (IntList L, int v)
 void IntListInsertInOrder (IntList L, int v)
 {
 	assert (L != NULL);
+// Make a new node and set the data and next to 0 and null respectively
 	struct IntListNode *n = newIntListNode (v);
 	n->data = v; n->next = NULL;
+
 /////////////
 // CASE 1: Empty case
 ////////////
