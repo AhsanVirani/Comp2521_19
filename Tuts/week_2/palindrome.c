@@ -3,6 +3,9 @@
 #include <string.h>
 #include <assert.h>
 
+
+// Complexity of Algo worst case n/2
+
 char *
 palindrome(char *);
 
@@ -19,15 +22,14 @@ char *
 palindrome(char *s)
 {
 	assert(s != NULL);
-	char *cpy = s;
-	int j = 0; int i;
 
-	for(i = strlen(s)-1; i > j; i--)
+	int j = 0; int i;	//O(1) assignment
+	for(i = strlen(s)-1; i > j; i--)	// loop until mid point reached O(n/2)
 	{
-		if(s[i] == cpy[j])	j++;
-		else break;
+		if(s[i] == s[j])	j++;	// O(n/2)
+		else break;	// O(1)
 	}
 
-	if(i == j)	return "yes";
-	return "no";
+	if(i == j)	return "yes";	// O(1)
+	return "no";	// O(1)
 }
