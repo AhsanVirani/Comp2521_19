@@ -1,0 +1,14 @@
+Set-list.c is complete
+- except that it does not keep the values in order
+
+Set-flex-array.c is complete
+- except that it does not keep the values in order
+
+Set-bits.c is complete
+- but I didn't test it
+
+Other Set-*.c are in various stages of incompleteness
+
+Note: if you change Set-*.c, you didn't change Set.c
+- so make will think there's nothing to recompile
+- to force this, pretend Set.c changed via "touch Set.c"

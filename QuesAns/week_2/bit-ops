@@ -1,0 +1,10 @@
+00101001
+01010010
+bitwise-OR
+01111011
+
+    Word mask = (1 << whichBit); 
+    Word result = a[whichWord] & mask;
+
+	1 << 0   ==   0000....000001
+	1 << 2   ==   0000....000100
