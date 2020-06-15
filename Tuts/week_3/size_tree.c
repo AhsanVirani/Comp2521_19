@@ -36,11 +36,7 @@ main(void)
 	left(e) = right(e) = NULL;
 	left(f) = right(f) = NULL;
 
-	Tree new = tree_partition(a, 2);
-	printf("%d\n", size_leftSubtree(a->left));
-	printf("root: %d\n", new->data);
-	printf("LS: %d %d\n", new->left->data, new->left->left->data);
-	printf("RS: %d %d %d\n", new->right->data, new->right->right->data, new->right->left->data);	
+	printf("%d\n", BSTreeNumNodes(a));
 
 	return 0;
 }
@@ -224,6 +220,11 @@ size_leftSubtree(Tree t)
 		return 1 + size_leftSubtree(left(t)) + size_leftSubtree(right(t));
 }
 
+int BSTreeNumNodes(Tree t)
+{
+	if(t == NULL)	return 0;
+	return 1 + BSTreeNumNodes(left(t)) + BSTreeNumNodes(right(t));
+}
 
 
 
