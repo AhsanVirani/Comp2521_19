@@ -71,4 +71,8 @@ int BSTreeHeight(Tree);
 int
 max(int, int);
 
+// Count the internal nodes of a tree
+int 
+countInternal(Tree);
+
 #endif

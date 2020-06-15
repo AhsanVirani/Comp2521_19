@@ -31,18 +31,14 @@ main(void)
 	set_Tree_node(d, 30);  set_Tree_node(e, 29); set_Tree_node(f, 32);
 	
 	left(a) = b; right(a) = c;
-	left(b) = right(b) = NULL;
-	left(c) = NULL; right(c) = d;
-	left(d) = e; right(d) = f;
+	left(b) = d; right(b) = e;
+	left(c) = NULL; right(c) = f;
+	left(d) = NULL; right(d) = NULL;
 	left(e) = right(e) = NULL;
 	left(f) = right(f) = NULL;
 
-	printf("%d\n", BSTreeHeight(a));
+	printf("%d\n", countInternal(a));
 
-	Tree x = Tree_new();
-	set_Tree_node(x, 10);
-	left(x) = right(x) = NULL;
-	printf("%d\n", BSTreeHeight(x));
 
 	return 0;
 }
@@ -246,7 +242,14 @@ max(int a, int b)
 	return a > b? a : b;
 }
 
-
-
+int 
+countInternal(Tree t)
+{
+	if(t == NULL) return 0;
+	else if(left(t) && right(t) != NULL)	return 1 + countInternal(left(t)) + countInternal(right(t));
+	else if(left(t) != NULL)	return 1 + countInternal(left(t));
+	else if(right(t) != NULL)	return 1 + countInternal(right(t));
+	else return 0;
+}
 
 
