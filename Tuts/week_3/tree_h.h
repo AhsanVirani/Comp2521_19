@@ -75,4 +75,12 @@ max(int, int);
 int 
 countInternal(Tree);
 
+// Counts depth of tree from given node
+int 
+nodeDepth(Tree, int);
+
+// Counts width of tree
+int 
+BSTWidth(Tree t);
+
 #endif
