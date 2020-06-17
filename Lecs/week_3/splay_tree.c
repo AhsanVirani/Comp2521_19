@@ -335,6 +335,7 @@ insertSplay(Tree t, int item)
 		}
 		return rotateLeft(t);	
 	}
+	return t;
 }
 
 // address of the item if found else NULL
