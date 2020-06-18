@@ -83,4 +83,7 @@ nodeDepth(Tree, int);
 int 
 BSTWidth(Tree t);
 
+int 
+BSTLeaves(Tree);
+
 #endif

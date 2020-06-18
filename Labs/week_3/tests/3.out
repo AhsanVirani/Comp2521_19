@@ -17,8 +17,8 @@ Tree:
                \
                 9
 
-#nodes = 9,  #leaves = 0
+#nodes = 9,  #leaves = 1
 Infix  : 1 2 3 4 5 6 7 8 9 
 Prefix : 1 2 3 4 5 6 7 8 9 
 Postfix: 9 8 7 6 5 4 3 2 1 
-ByLevel: 
+ByLevel: 1 2 3 4 5 6 7 8 9 

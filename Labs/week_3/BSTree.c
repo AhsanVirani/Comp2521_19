@@ -94,7 +94,18 @@ void BSTreePostfix (BSTree t)
 // print values in level-order
 void BSTreeLevelOrder (BSTree t)
 {
-	return; // TODO
+	if (t == NULL)	return;
+	// initialise Queue
+	Queue q = newQueue ();
+	// add T's root node to queue
+	QueueJoin (q, t);
+	while (!QueueIsEmpty (q))
+	{
+		t = QueueLeave (q);
+		printf ("%d ", t->value);
+		if (t->left != NULL)	QueueJoin (q, t->left);
+		if (t->right != NULL)	QueueJoin (q, t->right);
+	} // TODO
 }
 
 
@@ -110,7 +121,10 @@ int BSTreeNumNodes (BSTree t)
 // count #leaves in BSTree
 int BSTreeNumLeaves (BSTree t)
 {
-	return 0; // TODO
+	if (t == NULL)	return 0;
+	else if (t->left == NULL && t->right == NULL)	return 1;
+	return 	BSTreeNumLeaves (t->left) + BSTreeNumLeaves (t->right);
+	// TODO
 }
 
 

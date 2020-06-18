@@ -91,5 +91,5 @@ Item QueueLeave (Queue Q)
 // check for no items
 bool QueueIsEmpty (Queue Q)
 {
-	return Q->head == NULL;
+	return (Q->head) == NULL;
 }
