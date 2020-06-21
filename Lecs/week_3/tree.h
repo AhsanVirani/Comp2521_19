@@ -7,7 +7,17 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define data(node) ((node)->data)
+#define left(node) ((node)->left)
+#define right(node) ((node)->right)
+
 typedef struct Node *Tree;
+
+struct Node{
+	int data;
+	Tree left, right;
+} Node;
+
 
 // Create new empty tree
 Tree
@@ -81,14 +91,7 @@ nodeDepth(Tree, int);
 
 // Counts width of tree
 int 
-BSTWidth(Tree t);
+BSTWidth(Tree);
 
-// insertion in a splay tree
-Tree
-insertSplay(Tree, int);
-
-// search in a splay tree. Makes the searched item new root
-Tree
-search_splay(Tree, int);
 
 #endif

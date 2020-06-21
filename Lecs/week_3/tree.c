@@ -7,17 +7,10 @@
 
 typedef struct Node *Tree;
 
-struct Node{
-	int data;
-	Tree left, right;
-} Node;
 
-#define data(node) ((node)->data)
-#define left(node) ((node)->left)
-#define right(node) ((node)->right)
-
-int
-main(void)
+/*
+static int
+test(void)
 {
 	// making tree 
 	Tree a = Tree_new();
@@ -33,6 +26,7 @@ main(void)
 
 	return 0;
 }
+*/
 
 // Create a new tree
 Tree
