@@ -5,29 +5,6 @@
 #include <math.h>
 #include "avl_tree.h"
 
-/*
-static int
-test(void)
-{
-	// making tree 
-	Tree a = Tree_new();
-	Tree b = Tree_new();
-	Tree c = Tree_new();
-	Tree d = Tree_new();
-	Tree e = Tree_new();
-	Tree f = Tree_new();	
-	Tree g = Tree_new();	
-	Tree h = Tree_new();	
-
-	// Setting tree nodes
-	set_Tree_node(a, 14); set_Tree_node(b, 11), set_Tree_node(c, 10);
-	set_Tree_node(d, 12);  set_Tree_node(e, 31); set_Tree_node(f, 22);
-	set_Tree_node(g, 26);  set_Tree_node(h, 35); 
-	
-
-	return 0;
-}
-*/
 
 Tree
 insertAVL(Tree t, int item)
@@ -51,12 +28,14 @@ insertAVL(Tree t, int item)
 	int Rheight = BSTreeHeight(right(t));
 	// if (L-R) > 1 we rotate right
 	if((Lheight - Rheight) > 1)
-	{
+	{	
+		// Left Right Case where we do Left rotation first
 		if(item  > data(left(t)))	left(t) = rotateLeft(left(t));
 		t = rotateRight(t);
 	}
 	else if((Rheight - Lheight) > 1)
 	{
+		// Right Left case where we do Right rotation first
 		if(item < data(right(t)))	right(t) = rotateRight(right(t));
 		t = rotateLeft(t);
 	}
