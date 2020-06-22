@@ -21,6 +21,32 @@ struct _DictRep {
    Link tree;
 };
 
+// Static Function Declarations
+static
+Link newNode();
+
+static
+Link inDict(Link, char *);
+
+static
+void setData(Link, char *);
+
+static
+Link insertAVL(Link, char *);
+
+static
+Link rotateRight(Link);
+
+static
+Link rotateLeft(Link);
+
+static
+int treeHeight(Link);
+
+static
+int max(int, int);
+
+
 // create new empty Dictionary
 Dict newDict()
 {
@@ -42,54 +68,125 @@ Link newNode()
 	return node;
 }
 
-// Checks whether a word is in the Dict
-// returns booleon
+// Returns the pointer the node containing word if found
+// NULL otherwise
 static
-bool inDict(Link root, char *w)
+Link inDict(Link root, char *w)
 {
 	assert(w != NULL);
-	if(root == NULL)	return false;
-	bool found;
-	// if found
-	if(strcmp(w, root->data.word) == 0)	return true;
-	// w < data.word so find in left subtree
-	else if(strcmp(w, root->data.word) > 0)
-	{
-		found = inDict(root->left, w);
-	}
-	// w > data.word so find in right subtree
-	else if(strcmp(w, root->data.word) < 0)
-	{
-		found = inDict(root->right, w);
-	}
-	// Not Found
+
+	if(root == NULL)	return NULL;
+	Link found = NULL;
+	if(strcmp(w, root->data.word) == 0)	return root;
+	else if(strcmp(w, root->data.word) > 0)	found = inDict(root->left, w);
+	else if(strcmp(w, root->data.word) < 0)	found = inDict(root->right, w);
+	
 	return found;
+}
+
+// Set the data of the node
+static
+void setData(Link node, char *w)
+{
+	assert(node != NULL && w != NULL);
+	node->data.word = strdup(w);
+	node->data.freq++;
+}
+
+// Avl tree implementation
+static
+Link insertAVL(Link root, char *w)
+{
+	// Base case of Null
+	if(root == NULL)
+	{
+		root = newNode();
+		setData(root, w);
+		return root;
+	}
+	else if(strcmp(w, root->data.word) > 0)	root->left = insertAVL(root->left, w);
+	else if(strcmp(w, root->data.word) < 0)	root->right = insertAVL(root->right, w);
+	
+
+	int Lheight = treeHeight(root->left);
+	int Rheight = treeHeight(root->right);
+
+	if((Lheight - Rheight) > 1)
+	{	
+		if(strcmp(w, root->left->data.word) < 0)	root->left = rotateLeft(root->left);
+		root = rotateRight(root);
+	}
+	else if((Rheight - Lheight) > 1)
+	{
+		if(strcmp(w, root->right->data.word) > 0)	root->right = rotateRight(root->right);
+		root = rotateLeft(root);
+	}
+	return root;
+
+}
+
+// Rotate Tree Right
+static
+Link rotateRight(Link node)
+{
+	if(node == NULL || node->left == NULL)	return node;
+	Link tmp = node->left;
+	node->left = tmp->right;
+	tmp->right = node;
+	return tmp;
+}
+// Rotate Tree Left
+static
+Link rotateLeft(Link node)
+{
+	if(node == NULL || node->right == NULL)	return node;
+	Link tmp = node->right;
+	node->right = node->left;
+	tmp->left = node;
+	return tmp;
+}
+
+// Find height of tree
+static
+int treeHeight(Link node) 
+{
+	if(node == NULL) return -1;	
+	return 1 + max(treeHeight(node->left), treeHeight(node->right));
+}
+
+// Returns of maximum height of subtree
+static
+int max(int a, int b)
+{
+	return a > b? a : b;
 }
 
 // insert new word into Dictionary
 // return pointer to the (word,freq) pair for that word
 WFreq *DictInsert(Dict d, char *w)
 {
-	// Using AVL Tree Implementation to keep the tree balanced
-
-	// Dict is NULL
+	assert(w != NULL);
+	
+	// if Dict rep is null we insert at head
 	if(d == NULL)
 	{
 		d = newDict();
 		d->tree = newNode();
-		d->tree->data.word = strdup(w);	d->tree->data.freq++;
+		setData(d->tree, w);
+		return &(d->tree->data);
 	}
-	// word already in Dict
-	else if(inDict(d->tree, w) == true)
+	// Check whether already exists
+	// If yes then return the WFreq pair
+	if(inDict(d->tree, w) != NULL)
 	{
-		wordLoc->data.freq++;
-	}   
-	// if not in Dict then AVL insert
+		inDict(d->tree, w)->data.freq++;
+		return &(inDict(d->tree, w)->data);
+	}
+	// Avl tree implementation
+	// returns the Link to new node inserted
+	Link root = insertAVL(d->tree, w);
 
-	if(inDict(d->tree, w) == true)	printf("TRUE\n");
-	else if(inDict(d->tree, w) == false)	printf("FALSE\n");
-
-   return NULL;
+	return &(inDict(root, w)->data);	
 }
 
 // find Word in Dictionary
@@ -121,23 +218,26 @@ void showDict(Dict d)
 int
 white_box(void)
 {
-	Dict root = newDict();
+
+	Dict d = newDict();
 	Link a = newNode();
 	Link b = newNode();
-	Link c = newNode();	
+	Link c = newNode();
 	a->data.word = malloc(sizeof(3));
 	a->data.word = "US";
+	a->data.freq++;
+	d->tree = a;
 	b->data.word = malloc(sizeof(8));
 	b->data.word = "England";
+	b->data.freq++;
+	a->right = b;
 	c->data.word = malloc(sizeof(9));
 	c->data.word = "Pakistan";
-	root->tree = a;
-	a->right = b;
+	c->data.freq++;
 	b->left = c;
 
-	if(inDict(a, "Pakistan") == true)	printf("TRUE\n");
-	if(inDict(a, "China") == false)	printf("FALSE\n");
-
+	printf("(%s, %d)\n",DictInsert(d, "Pakistan")->word, DictInsert(d, "Pakistan")->freq);
+	
 	return 0;
 }
 
