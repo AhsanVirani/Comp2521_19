@@ -3,7 +3,7 @@
 CC=gcc
 CFLAGS=-DWall -Dwerror -g
 
-testDict : testDict.o Dict.o
+testDict : testDict.o Dict.o 
 	$(CC) -o testDict testDict.o Dict.o
 
 Dict.o : Dict.c Dict.h WFreq.h

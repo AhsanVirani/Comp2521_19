@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include "Dict.h"
 #include "WFreq.h"
+//#include "Queue.h"
 
 typedef struct _DictNode *Link;
 
@@ -47,6 +48,15 @@ int treeHeight(Link);
 
 static
 int max(int, int);
+
+static
+void preorderTraversal(Link);
+
+static
+void destoryTree(Link);
+
+static
+void destroyDict(Dict);
 
 
 // create new empty Dictionary
@@ -132,6 +142,35 @@ int max(int a, int b)
 	return a > b? a : b;
 }
 
+// Print tree in preorder traversal i.e. NLR
+static
+void preorderTraversal(Link root)
+{
+	if(root == NULL)	return;	
+	printf("(%s, %d)\n", root->data.word, root->data.freq);
+	preorderTraversal(root->left);
+	preorderTraversal(root->right);
+}
+
+// Destroy Dictionary
+static
+void destroyTree(Link root)
+{
+	if(root == NULL)	return;
+	destroyTree(root->left);
+	destroyTree(root->right);	
+	free(root->data.word); free(root);	return;
+}
+
+// Destroy Dict Rep
+static
+void destroyDict(Dict d)
+{
+	free(d);
+	return;
+}
+
+
 // Avl tree implementation
 static
 Link insertAVL(Link root, char *w)
@@ -168,16 +207,12 @@ WFreq *DictInsert(Dict d, char *w)
 {
 	assert(d != NULL && w != NULL);
 	
-	// Check whether already exists
-	// If yes then return the WFreq pair
 	Link exist = inDict(d->tree, w);
-
 	if(exist != NULL)
 	{
 		exist->data.freq++;
 		return &(exist->data);
 	}
-	// Update Dict with Avl tree implementation
 	d->tree = insertAVL(d->tree, w);
 	
 	return &(inDict(d->tree, w)->data);	
@@ -203,9 +238,12 @@ int findTopN(Dict d, WFreq *wfs, int n)
 }
 
 // print a dictionary
+// Showing Dict in preorder traversal order
 void showDict(Dict d)
 {
-   // TODO if you need to display Dict's for debugging
+	// Pre order traversal
+	preorderTraversal(d->tree);	
+
    return;
 }
 
@@ -213,17 +251,31 @@ void showDict(Dict d)
 int
 white_box(void)
 {
-	Dict d = newDict();
-	WFreq *n1 =  DictInsert(d, "US");
-	WFreq *n2 =  DictInsert(d, "Eng");
-	WFreq *n3 =  DictInsert(d, "Pak");
-	//WFreq *n4 =  DictInsert(d, "US");
-	printf("%p -> (%s, %d)\n", n1, n1->word, n1->freq);
-	printf("(%s, %d)\n" , n2->word, n2->freq);
-	printf("(%s, %d)\n" , n3->word, n3->freq);
-	//printf("%p -> (%s, %d)\n" , n4, n4->word, n4->freq);
-
-	printf("Root: %s Left Child: %s Right Child: %s\n", d->tree->data.word, d->tree->left->data.word, d->tree->right->data.word);
+	////////////// Testing Insertion /////////////
+	// Passing Empty Dict
+	// Test 1: Fail Assertion	
+	//WFreq *n1 = DictInsert(NULL, "US");	
+	// Test 2: Add single Node
+	Dict d = newDict();	
+	WFreq *n2 = DictInsert(d, "US");
+	// Test 3: Add to the right of root
+	WFreq *n3 = DictInsert(d, "England");
+	// Test 4: Add to the left of right of root. AVL tree will be root: Pakistan LC: US RC: England
+	WFreq *n4 = DictInsert(d, "Pakistan");
+	// Test 5: Adding Same node again
+	WFreq *n5 = DictInsert(d, "Pakistan");
+	// Test 6: Adding Same node again
+	WFreq *n6 = DictInsert(d, "US");
+	// Test 7: Adding to the right of left of root
+	WFreq *n7 = DictInsert(d, "Russia");
+	// Test 8: Adding right of right of left of root.
+	WFreq *n8 = DictInsert(d, "Spain");
+	// The representation should be: root:Pak LS: Russia US Spain Eng
+	showDict(d);
+	printf("%d\n", treeHeight(d->tree));
+	
+	destroyTree(d->tree);
+	destroyDict(d);
 	
 	return 0;
 }
