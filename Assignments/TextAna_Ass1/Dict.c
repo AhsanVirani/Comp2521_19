@@ -1,3 +1,4 @@
+
 // COMP2521 20T2 Assignment 1
 // Dict.c ... implementsation of Dictionary ADT
 
@@ -22,6 +23,7 @@ struct _DictRep {
 };
 
 // Static Function Declarations
+
 static
 Link newNode();
 
@@ -68,7 +70,7 @@ Link newNode()
 	return node;
 }
 
-// Returns the pointer the node containing word if found
+// Returns the pointer of the node containing word if found
 // NULL otherwise
 static
 Link inDict(Link root, char *w)
@@ -93,38 +95,6 @@ void setData(Link node, char *w)
 	node->data.freq++;
 }
 
-// Avl tree implementation
-static
-Link insertAVL(Link root, char *w)
-{
-	// Base case of Null
-	if(root == NULL)
-	{
-		root = newNode();
-		setData(root, w);
-		return root;
-	}
-	else if(strcmp(w, root->data.word) > 0)	root->left = insertAVL(root->left, w);
-	else if(strcmp(w, root->data.word) < 0)	root->right = insertAVL(root->right, w);
-	
-
-	int Lheight = treeHeight(root->left);
-	int Rheight = treeHeight(root->right);
-
-	if((Lheight - Rheight) > 1)
-	{	
-		if(strcmp(w, root->left->data.word) < 0)	root->left = rotateLeft(root->left);
-		root = rotateRight(root);
-	}
-	else if((Rheight - Lheight) > 1)
-	{
-		if(strcmp(w, root->right->data.word) > 0)	root->right = rotateRight(root->right);
-		root = rotateLeft(root);
-	}
-	return root;
-
-}
-
 // Rotate Tree Right
 static
 Link rotateRight(Link node)
@@ -135,6 +105,7 @@ Link rotateRight(Link node)
 	tmp->right = node;
 	return tmp;
 }
+
 // Rotate Tree Left
 static
 Link rotateLeft(Link node)
@@ -161,32 +132,55 @@ int max(int a, int b)
 	return a > b? a : b;
 }
 
+// Avl tree implementation
+static
+Link insertAVL(Link root, char *w)
+{
+	if(root == NULL)
+	{
+		root = newNode();
+		setData(root, w);
+		return root;
+	}
+	else if(strcmp(w, root->data.word) > 0)	root->left = insertAVL(root->left, w);
+	else if(strcmp(w, root->data.word) < 0)	root->right = insertAVL(root->right, w);
+
+	int Lheight = treeHeight(root->left);
+	int Rheight = treeHeight(root->right);
+
+	if((Lheight - Rheight) > 1)
+	{	
+		if(strcmp(w, root->left->data.word) < 0)	root->left = rotateLeft(root->left);
+		root = rotateRight(root);
+	}
+	else if((Rheight - Lheight) > 1)
+	{
+		if(strcmp(w, root->right->data.word) > 0)	root->right = rotateRight(root->right);
+		root = rotateLeft(root);
+	}
+
+	return root;
+}
+
 // insert new word into Dictionary
 // return pointer to the (word,freq) pair for that word
 WFreq *DictInsert(Dict d, char *w)
 {
-	assert(w != NULL);
+	assert(d != NULL && w != NULL);
 	
-	// if Dict rep is null we insert at head
-	if(d == NULL)
-	{
-		d = newDict();
-		d->tree = newNode();
-		setData(d->tree, w);
-		return &(d->tree->data);
-	}
 	// Check whether already exists
 	// If yes then return the WFreq pair
-	if(inDict(d->tree, w) != NULL)
-	{
-		inDict(d->tree, w)->data.freq++;
-		return &(inDict(d->tree, w)->data);
-	}
-	// Avl tree implementation
-	// returns the Link to new node inserted
-	Link root = insertAVL(d->tree, w);
+	Link exist = inDict(d->tree, w);
 
-	return &(inDict(root, w)->data);	
+	if(exist != NULL)
+	{
+		exist->data.freq++;
+		return &(exist->data);
+	}
+	// Update Dict with Avl tree implementation
+	d->tree = insertAVL(d->tree, w);
+	
+	return &(inDict(d->tree, w)->data);	
 }
 
 // find Word in Dictionary
@@ -194,8 +188,9 @@ WFreq *DictInsert(Dict d, char *w)
 // otherwise return NULL
 WFreq *DictFind(Dict d, char *w)
 {
-   // TODO
-   return NULL;
+   assert(d != NULL && w != NULL);
+	
+   return &(inDict(d->tree, w)->data);
 }
 
 // find top N frequently occurring words in Dict
@@ -214,29 +209,21 @@ void showDict(Dict d)
    return;
 }
 
-
+// White Box Testing
 int
 white_box(void)
 {
-
 	Dict d = newDict();
-	Link a = newNode();
-	Link b = newNode();
-	Link c = newNode();
-	a->data.word = malloc(sizeof(3));
-	a->data.word = "US";
-	a->data.freq++;
-	d->tree = a;
-	b->data.word = malloc(sizeof(8));
-	b->data.word = "England";
-	b->data.freq++;
-	a->right = b;
-	c->data.word = malloc(sizeof(9));
-	c->data.word = "Pakistan";
-	c->data.freq++;
-	b->left = c;
+	WFreq *n1 =  DictInsert(d, "US");
+	WFreq *n2 =  DictInsert(d, "Eng");
+	WFreq *n3 =  DictInsert(d, "Pak");
+	//WFreq *n4 =  DictInsert(d, "US");
+	printf("%p -> (%s, %d)\n", n1, n1->word, n1->freq);
+	printf("(%s, %d)\n" , n2->word, n2->freq);
+	printf("(%s, %d)\n" , n3->word, n3->freq);
+	//printf("%p -> (%s, %d)\n" , n4, n4->word, n4->freq);
 
-	printf("(%s, %d)\n",DictInsert(d, "Pakistan")->word, DictInsert(d, "Pakistan")->freq);
+	printf("Root: %s Left Child: %s Right Child: %s\n", d->tree->data.word, d->tree->left->data.word, d->tree->right->data.word);
 	
 	return 0;
 }
