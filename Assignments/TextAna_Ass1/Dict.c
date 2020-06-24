@@ -58,6 +58,9 @@ void destoryTree(Link);
 static
 void destroyDict(Dict);
 
+static
+void fillTopN(Link, WFreq *, int);
+
 
 // create new empty Dictionary
 Dict newDict()
@@ -171,6 +174,32 @@ void destroyDict(Dict d)
 }
 
 
+static
+void fillTopN(Link root, WFreq *wfs, int n)
+{
+	if(root == NULL)	return;
+	fillTopN(root->left, wfs, n);
+	fillTopN(root->right, wfs, n);
+	
+	for(int i = 0; i < n; i++)
+	{
+		if(root->data.freq >= wfs[i].freq)
+		{
+			WFreq tmp = wfs[i];
+			wfs[i] = root->data;
+	
+			for(int j = n-2; j >= i+1; j--)
+			{
+				wfs[j+1] = wfs[j];
+			}
+			if(i+1 < n && tmp.word != NULL)	wfs[i+1] = tmp;
+			break;
+		}
+	}
+
+}
+
+
 // Avl tree implementation
 static
 Link insertAVL(Link root, char *w)
@@ -233,7 +262,12 @@ WFreq *DictFind(Dict d, char *w)
 // returns: #WFreqs in array, modified array
 int findTopN(Dict d, WFreq *wfs, int n)
 {
-   // TODO
+	assert(d != NULL && wfs != NULL);
+
+	// Call a function to fill the array
+	fillTopN(d->tree, wfs, n);
+		
+
    return 0;
 }
 
@@ -266,14 +300,18 @@ white_box(void)
 	WFreq *n5 = DictInsert(d, "Pakistan");
 	// Test 6: Adding Same node again
 	WFreq *n6 = DictInsert(d, "US");
-	// Test 7: Adding to the right of left of root
-	WFreq *n7 = DictInsert(d, "Russia");
-	// Test 8: Adding right of right of left of root.
-	WFreq *n8 = DictInsert(d, "Spain");
-	// The representation should be: root:Pak LS: Russia US Spain Eng
-	showDict(d);
-	printf("%d\n", treeHeight(d->tree));
+
+	// allocate space for array
+	WFreq *wfs = (WFreq *)malloc(3*sizeof(WFreq));
+	for(int i = 0; i < 3; i++)
+	{
+		wfs[i].word == NULL; wfs[i].freq = -1;
+	}
+
+	findTopN(d, wfs, 3);
+
 	
+
 	destroyTree(d->tree);
 	destroyDict(d);
 	
