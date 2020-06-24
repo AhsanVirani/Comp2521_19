@@ -7,6 +7,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <ctype.h>
 #include "Dict.h"
 #include "WFreq.h"
 //#include "Queue.h"
@@ -23,7 +24,7 @@ struct _DictRep {
    Link tree;
 };
 
-// Static Function Declarations
+// Defintion of static Function used
 
 static
 Link newNode();
@@ -60,6 +61,9 @@ void destroyDict(Dict);
 
 static
 void fillTopN(Link, WFreq *, int);
+
+static
+void destoryWFreq(WFreq *);
 
 
 // create new empty Dictionary
@@ -173,32 +177,13 @@ void destroyDict(Dict d)
 	return;
 }
 
-
+// Free WFreq array
 static
-void fillTopN(Link root, WFreq *wfs, int n)
+void destoryWFreq(WFreq *wfs)
 {
-	if(root == NULL)	return;
-	fillTopN(root->left, wfs, n);
-	fillTopN(root->right, wfs, n);
-	
-	for(int i = 0; i < n; i++)
-	{
-		if(root->data.freq >= wfs[i].freq)
-		{
-			WFreq tmp = wfs[i];
-			wfs[i] = root->data;
-	
-			for(int j = n-2; j >= i+1; j--)
-			{
-				wfs[j+1] = wfs[j];
-			}
-			if(i+1 < n && tmp.word != NULL)	wfs[i+1] = tmp;
-			break;
-		}
-	}
-
+	free(wfs);
+	return;
 }
-
 
 // Avl tree implementation
 static
@@ -257,25 +242,57 @@ WFreq *DictFind(Dict d, char *w)
    return &(inDict(d->tree, w)->data);
 }
 
+// fill top N by frequency in WFreq array
+// Support func for findTopN
+static
+void fillTopN(Link root, WFreq *wfs, int n)
+{
+	if(root == NULL)	return;
+	fillTopN(root->left, wfs, n);
+	fillTopN(root->right, wfs, n);
+	
+	for(int i = 0; i < n; i++)
+	{
+		if(root->data.freq >= wfs[i].freq)
+		{
+			WFreq tmp = wfs[i];
+			wfs[i] = root->data;
+	
+			for(int j = n-2; j > i; j--)	wfs[j+1] = wfs[j];
+			
+			if(i+1 < n && tmp.word != NULL)	wfs[i+1] = tmp;	
+			break;
+		}
+	}
+}
+
 // find top N frequently occurring words in Dict
 // input: Dictionary, array of WFreqs, size of array
 // returns: #WFreqs in array, modified array
 int findTopN(Dict d, WFreq *wfs, int n)
 {
-	assert(d != NULL && wfs != NULL);
-
-	// Call a function to fill the array
+	assert(d != NULL && wfs != NULL && n > 0);
+	
+	wfs = (WFreq *)malloc(n*sizeof(WFreq));
+	for(int i = 0; i < n; i++)
+	{
+		wfs[i].word == NULL; wfs[i].freq = -1;
+	}
+	
 	fillTopN(d->tree, wfs, n);
-		
-
-   return 0;
+	
+	int member = 0;
+	for(int i = 0; i < n && wfs[i].word != NULL && wfs[i].freq != -1; i++)	member++;
+	destoryWFreq(wfs);
+   return member;
 }
+
+// Show WFreq
 
 // print a dictionary
 // Showing Dict in preorder traversal order
 void showDict(Dict d)
 {
-	// Pre order traversal
 	preorderTraversal(d->tree);	
 
    return;
@@ -286,35 +303,33 @@ int
 white_box(void)
 {
 	////////////// Testing Insertion /////////////
-	// Passing Empty Dict
-	// Test 1: Fail Assertion	
-	//WFreq *n1 = DictInsert(NULL, "US");	
-	// Test 2: Add single Node
-	Dict d = newDict();	
-	WFreq *n2 = DictInsert(d, "US");
-	// Test 3: Add to the right of root
+	// Passing NULL Dict
+	//printf("%d\n", findTopN(NULL, wfs, 10));
+	// Passing Null wfs
+	Dict d = newDict();
+	WFreq *wfs;	
+	// Case of 2 node
+	WFreq *n1 = DictInsert(d, "US");
+	WFreq *n2 = DictInsert(d, "England");
 	WFreq *n3 = DictInsert(d, "England");
-	// Test 4: Add to the left of right of root. AVL tree will be root: Pakistan LC: US RC: England
-	WFreq *n4 = DictInsert(d, "Pakistan");
-	// Test 5: Adding Same node again
-	WFreq *n5 = DictInsert(d, "Pakistan");
-	// Test 6: Adding Same node again
-	WFreq *n6 = DictInsert(d, "US");
-
-	// allocate space for array
-	WFreq *wfs = (WFreq *)malloc(3*sizeof(WFreq));
-	for(int i = 0; i < 3; i++)
-	{
-		wfs[i].word == NULL; wfs[i].freq = -1;
-	}
-
-	findTopN(d, wfs, 3);
-
+	WFreq *n4 = DictInsert(d, "England");
+	WFreq *n5 = DictInsert(d, "England");
+	WFreq *n6 = DictInsert(d, "England");
+	WFreq *n7 = DictInsert(d, "Pakistan");
+	WFreq *n8 = DictInsert(d, "Pakistan");
+	WFreq *n9 = DictInsert(d, "Pakistan");
+	WFreq *n10 = DictInsert(d, "US");
+	WFreq *n11 = DictInsert(d, "US");
+	WFreq *n12 = DictInsert(d, "Afghanistan");
+	WFreq *n13 = DictInsert(d, "Afghanistan");
+	WFreq *n14 = DictInsert(d, "Australia");
+	WFreq *n15 = DictInsert(d, "Australia");
+	printf("%d\n", findTopN(d, wfs, 2));
 	
+
 
 	destroyTree(d->tree);
 	destroyDict(d);
-	
 	return 0;
 }
 

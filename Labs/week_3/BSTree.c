@@ -106,6 +106,7 @@ void BSTreeLevelOrder (BSTree t)
 		if (t->left != NULL)	QueueJoin (q, t->left);
 		if (t->right != NULL)	QueueJoin (q, t->right);
 	} // TODO
+	dropQueue(q);
 }
 
 
