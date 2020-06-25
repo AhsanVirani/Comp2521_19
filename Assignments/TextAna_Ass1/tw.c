@@ -28,6 +28,7 @@ int main( int argc, char *argv[])
    Dict stopwordDict = newDict();  // dictionary of stopwords
 	Dict gutenburgDict = newDict();
 	int j = 0;	// word len interator
+	int k = 0;	// output from stem
 
    FILE  *in;         // currently open file
    Dict   wfreqs;     // dictionary of words from book
@@ -106,8 +107,13 @@ int main( int argc, char *argv[])
 			{
 				// Got the word here
 				match = DictFind(stopwordDict, word);
-				if(match == NULL) int stem(word, 0, (strlen(word)+1));
-				WFreq *DictInsert(gutenburgDict, word);
+				if(match == NULL) 
+				{
+					k = stem(word, 0, (strlen(word)-1));
+					word[k+1] = '\0';
+					match = DictInsert(gutenburgDict, word);
+					printf("(%s, %d)\n", match->word, match->freq);
+				}				
 				
 				for (int k = 0; k < j; k++) word[k] = '\0';
 				j = 0;
@@ -116,11 +122,10 @@ int main( int argc, char *argv[])
 		}
 
 	}
-   // TODO
 
    // compute and display the top N words
-
-   // TODO
+	int topN = findTopN(gutenburgDict, results, nWords);
+	for(int i = 0; i < topN; i++)	printf("(%s, %d)\n", results->word, results->freq);
 
    // done
    return EXIT_SUCCESS;

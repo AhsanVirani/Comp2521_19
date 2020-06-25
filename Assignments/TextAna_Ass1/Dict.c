@@ -340,7 +340,6 @@ white_box(void)
 	Dict stopwordDict = newDict();
 	while(fscanf(s, "%s", arr) != EOF)	DictInsert(stopwordDict, arr);
 	fclose(s);
-	showDict(stopwordDict);
 
 
 ////////////////////////////////
@@ -353,7 +352,8 @@ white_box(void)
 	in = fopen("test.txt", "r");
 	int j;
 	WFreq *rem;
-	int stemint = 0;
+	int k = 0;
+	Dict gutenburgDict = newDict();
 
 	assert(in != NULL);
 	while(fgets(line, 1000, in) != NULL)
@@ -385,12 +385,14 @@ white_box(void)
 				rem = DictFind(stopwordDict, word);
 				if(rem == NULL)	
 				{
-					printf("%s\n", word);
-					stemint = stem(word, 0, (strlen(word)+1));
+					k = stem(word, 0, (strlen(word)-1));
+					word[k+1] = '\0';
+					rem = DictInsert(gutenburgDict, word);
+					printf("(%s, %d)\n", rem->word, rem->freq);
 				}				
 				for (int k = 0; k < j; k++)
 				{
-					word[k] = '\0';
+					word[k+1] = '\0';
 				}
 				j = 0;
 			}
@@ -398,6 +400,7 @@ white_box(void)
 		}
 	}
 
+// My dict is full here
 
 
 	fclose(in);
