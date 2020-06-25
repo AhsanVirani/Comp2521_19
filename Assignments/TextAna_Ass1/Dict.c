@@ -10,6 +10,7 @@
 #include <ctype.h>
 #include "Dict.h"
 #include "WFreq.h"
+#include "stemmer.h"
 
 #define isWordChar(c) (isalnum(c) || (c) == '\'' || (c) == '-')
 //#include "Queue.h"
@@ -351,7 +352,8 @@ white_box(void)
 	FILE *in;		
 	in = fopen("test.txt", "r");
 	int j;
-	char *rem = NULL;
+	WFreq *rem;
+	int stemint = 0;
 
 	assert(in != NULL);
 	while(fgets(line, 1000, in) != NULL)
@@ -380,13 +382,12 @@ white_box(void)
 			}
 			if(line[i] == ' ' || !isWordChar(line[i]))
 			{
-		// ERROR HERE. FIX ONCE ONE. STRCMP AND REM THINGY
-				rem = DictFind(stopwordDict, word)->word;
-				if(rem != NULL)
-				{	
-					if(strcmp(rem, word) == 0)	printf("%s\n", rem);
-					rem = NULL;
-				}//memset(word, 0, 100*sizeof(word));
+				rem = DictFind(stopwordDict, word);
+				if(rem == NULL)	
+				{
+					printf("%s\n", word);
+					stemint = stem(word, 0, (strlen(word)+1));
+				}				
 				for (int k = 0; k < j; k++)
 				{
 					word[k] = '\0';
@@ -398,12 +399,15 @@ white_box(void)
 	}
 
 
+
 	fclose(in);
 
 
 
 	destroyTree(d->tree);
+	destroyTree(stopwordDict->tree);
 	destroyDict(d);
+	destroyDict(stopwordDict);
 	return 0;
 }
 

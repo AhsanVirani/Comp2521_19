@@ -24,9 +24,12 @@
 int main( int argc, char *argv[])
 {
    // TODO ... add any variables you need
+	WFreq *match;	// To check whether stopword matches word extracted from file
+   Dict stopwordDict = newDict();  // dictionary of stopwords
+	Dict gutenburgDict = newDict();
+	int j = 0;	// word len interator
 
    FILE  *in;         // currently open file
-   Dict   stopwords;  // dictionary of stopwords
    Dict   wfreqs;     // dictionary of words from book
    WFreq *results;    // array of top N (word,freq) pairs
                       // (dynamically allocated)
@@ -63,7 +66,6 @@ int main( int argc, char *argv[])
 		fprintf(stderr, "Can't open stopwords\n");
 		exit(EXIT_FAILURE);
 	}	
-	Dict stopwordDict = newDict();
 	while(fscanf(in, "%s", word) != EOF)	DictInsert(stopwordDict, word);
 	fclose(in);
   
@@ -103,6 +105,10 @@ int main( int argc, char *argv[])
 			if(line[i] == ' ' || !isWordChar(line[i]))
 			{
 				// Got the word here
+				match = DictFind(stopwordDict, word);
+				if(match == NULL) int stem(word, 0, (strlen(word)+1));
+				WFreq *DictInsert(gutenburgDict, word);
+				
 				for (int k = 0; k < j; k++) word[k] = '\0';
 				j = 0;
 			}
