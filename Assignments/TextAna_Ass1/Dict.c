@@ -10,6 +10,8 @@
 #include <ctype.h>
 #include "Dict.h"
 #include "WFreq.h"
+
+#define isWordChar(c) (isalnum(c) || (c) == '\'' || (c) == '-')
 //#include "Queue.h"
 
 typedef struct _DictNode *Link;
@@ -283,7 +285,7 @@ int findTopN(Dict d, WFreq *wfs, int n)
 	
 	int member = 0;
 	for(int i = 0; i < n && wfs[i].word != NULL && wfs[i].freq != -1; i++)	member++;
-	destoryWFreq(wfs);
+	
    return member;
 }
 
@@ -324,8 +326,80 @@ white_box(void)
 	WFreq *n13 = DictInsert(d, "Afghanistan");
 	WFreq *n14 = DictInsert(d, "Australia");
 	WFreq *n15 = DictInsert(d, "Australia");
-	printf("%d\n", findTopN(d, wfs, 2));
+
+	///////STOPWORDICT//////////////
+	FILE * s;
+	char arr[50] = "";
+	s = fopen("stopwords", "r");
+	if(s == NULL)	
+	{	
+		fprintf(stderr, "Can't open stopwords\n");
+		exit(EXIT_FAILURE);
+	}	
+	Dict stopwordDict = newDict();
+	while(fscanf(s, "%s", arr) != EOF)	DictInsert(stopwordDict, arr);
+	fclose(s);
+	showDict(stopwordDict);
+
+
+////////////////////////////////
+
+
 	
+	char line[1000] = "";
+	char word[100] = "";
+	FILE *in;		
+	in = fopen("test.txt", "r");
+	int j;
+	char *rem = NULL;
+
+	assert(in != NULL);
+	while(fgets(line, 1000, in) != NULL)
+	{
+		if(strncmp(line, "Ahsan is", 8) == 0) break;
+	}
+
+
+	while(fgets(line, 1000, in) != NULL && strncmp(line, "Iman", 4) != 0)
+	{
+		j = 0;
+		for(int i = 0; i < strlen(line); i++)
+		{
+			if(line[i] != ' ' && isWordChar(line[i]))
+			{
+				if(line[i] >= 65 && line[i] <= 90)	
+				{				
+					word[j] = line[i] + 32;
+				}
+				else 
+				{		
+					word[j] = line[i];
+				}
+				j++;
+	
+			}
+			if(line[i] == ' ' || !isWordChar(line[i]))
+			{
+		// ERROR HERE. FIX ONCE ONE. STRCMP AND REM THINGY
+				rem = DictFind(stopwordDict, word)->word;
+				if(rem != NULL)
+				{	
+					if(strcmp(rem, word) == 0)	printf("%s\n", rem);
+					rem = NULL;
+				}//memset(word, 0, 100*sizeof(word));
+				for (int k = 0; k < j; k++)
+				{
+					word[k] = '\0';
+				}
+				j = 0;
+			}
+		
+		}
+	}
+
+
+	fclose(in);
+
 
 
 	destroyTree(d->tree);

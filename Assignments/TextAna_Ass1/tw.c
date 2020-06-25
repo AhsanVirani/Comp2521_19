@@ -34,11 +34,14 @@ int main( int argc, char *argv[])
    char *fileName;    // name of file containing book text
    int   nWords;      // number of top frequency words to show
 
-   char   line[MAXLINE];  // current input line
-   char   word[MAXWORD];  // current word
+   char   line[MAXLINE] = "";  // current input line
+   char   word[MAXWORD] = "";  // current word
 
    // process command-line args
    switch (argc) {
+	case 1:
+		fprintf(stderr,"Usage: %s [Nwords] File\n", argv[0]);
+		exit(EXIT_FAILURE);
    case 2:
       nWords = 10;
       fileName = argv[1];
@@ -54,15 +57,59 @@ int main( int argc, char *argv[])
    }
 
    // build stopword dictionary
-
-   // TODO
+	in = fopen("stopwords", "r");
+	if(in == NULL)	
+	{	
+		fprintf(stderr, "Can't open stopwords\n");
+		exit(EXIT_FAILURE);
+	}	
+	Dict stopwordDict = newDict();
+	while(fscanf(in, "%s", word) != EOF)	DictInsert(stopwordDict, word);
+	fclose(in);
+  
 
    // scan File, up to start of text
+	in = fopen(fileName, "r");
+	assert(in != NULL);
+	while(fgets(line, MAXLINE, in) != NULL)
+	{
+		if(strncmp(line, "*** START OF", 12) == 0)	break;
+	}
+	///////// IF COULDNT FIND START OF LINE //////////
+	if(strncmp(line, "*** START OF", 12) != 0)
+	{
+		fprintf(stderr, "Not a Project Gutenberg book\n");
+		exit(EXIT_FAILURE);
+	}
 
-   // TODO
 
    // scan File reading words and accumualting counts
+	while(fgets(line, MAXLINE, in) != NULL && strncmp(line, "*** END OF", 10) != 0))
+	{
+		for(int i = 0; i < strlen(line); i++)
+		{
+			if(line[i] != ' ' && isWordChar(line[i]))
+			{
+				if(line[i] >= 65 && line[i] <= 90)	
+				{				
+					word[j] = line[i] + 32;
+				}
+				else 
+				{		
+					word[j] = line[i];
+				}
+				j++;
+			}
+			if(line[i] == ' ' || !isWordChar(line[i]))
+			{
+				// Got the word here
+				for (int k = 0; k < j; k++) word[k] = '\0';
+				j = 0;
+			}
 
+		}
+
+	}
    // TODO
 
    // compute and display the top N words
