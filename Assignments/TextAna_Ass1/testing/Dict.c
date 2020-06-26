@@ -123,24 +123,26 @@ void setData(Link node, char *w)
 
 // Rotate Tree Right
 static
-Link rotateRight(Link node)
+Link rotateRight(Link n1)
 {
-	if(node == NULL || node->left == NULL)	return node;
-	Link tmp = node->left;
-	node->left = tmp->right;
-	tmp->right = node;
-	return tmp;
+	if (n1 == NULL) return NULL;
+	Link n2 = n1->left;
+	if (n2 == NULL) return n1;
+	n1->left = n2->right;
+	n2->right = n1;
+	return n2;
 }
 
 // Rotate Tree Left
 static
-Link rotateLeft(Link node)
+Link rotateLeft(Link n2)
 {
-	if(node == NULL || node->right == NULL)	return node;
-	Link tmp = node->right;
-	node->right = node->left;
-	tmp->left = node;
-	return tmp;
+	if (n2 == NULL) return NULL;
+	Link n1 = n2->right;
+	if (n1 == NULL) return n2;
+	n2->right = n1->left;
+	n1->left = n2;
+	return n1;
 }
 
 // Find height of tree
@@ -207,7 +209,7 @@ Link insertAVL(Link root, char *w)
 	else {
 		if(strcmp(w, root->data.word) > 0)	root->left = insertAVL(root->left, w);
 		else if(strcmp(w, root->data.word) < 0)	root->right = insertAVL(root->right, w);
-	} /*
+	} 
 	int Lheight = treeHeight(root->left);
 	int Rheight = treeHeight(root->right);
 
@@ -222,7 +224,7 @@ Link insertAVL(Link root, char *w)
 		if(strcmp(w, root->right->data.word) > 0)	root->right = rotateRight(root->right);
 		root = rotateLeft(root);
 	}
-*/
+
 	return root;
 }
 
@@ -283,12 +285,7 @@ void fillTopN(Link root, WFreq *wfs, int n)
 int findTopN(Dict d, WFreq *wfs, int n)
 {
 	assert(d != NULL && wfs != NULL && n > 0);
-	
-	wfs = (WFreq *)malloc(n*sizeof(WFreq));
-	for(int i = 0; i < n; i++)
-	{
-		wfs[i].word = NULL; wfs[i].freq = -1;
-	}
+
 	
 	fillTopN(d->tree, wfs, n);
 	
@@ -309,6 +306,17 @@ void showDict(Dict d)
    return;
 }
 
+static
+WFreq *makeWFreq(int n)
+{
+	WFreq *wfs = (WFreq *)malloc(n*sizeof(WFreq));
+	for(int i = 0; i < n; i++)
+	{
+		wfs[i].word = NULL; wfs[i].freq = -1;
+	}
+	return wfs;
+
+}
 
 
 // White Box Testing
@@ -362,7 +370,7 @@ white_box(void)
 	int j; // to fill word
 	int k = 0; // for stemming purpose
 	WFreq *isstop;	// To check whether stopword matches word extracted from file
-	WFreq *printstr;
+	WFreq *results = makeWFreq(50);
 	while(fgets(line, MAXLINE, in) != NULL)
 	{
 		// Line has content so do something
@@ -395,8 +403,7 @@ white_box(void)
 					{
 						k = stem(word, 0, (strlen(word)-1));
 						word[k+1] = '\0';
-						printstr = DictInsert(gutenburg, word);
-						printf("(%s, %d)\n", printstr->word, printstr->freq);
+						DictInsert(gutenburg, word);
 					}			
 					
 		
@@ -412,98 +419,12 @@ white_box(void)
 		else continue;
 	}
 
-
-/*
-
-
-
-
-
-
-	///////STOPWORDICT//////////////
-	FILE * s;
-	int i;
-	char arr[50] = "";
-	s = fopen("stopwords", "r");
-	if(s == NULL)	
-	{	
-		fprintf(stderr, "Can't open stopwords\n");
-		exit(EXIT_FAILURE);
-	}	
-	Dict stopwordDict = newDict();
-	while(fscanf(s, "%s", arr) != EOF)	DictInsert(stopwordDict, arr);
-	fclose(s);
-
-
-
-
-	
-	char line[1000] = "";
-	char word[100] = "";
-	FILE *in;		
-	in = fopen("0011.txt", "r");
-	int j;
-	WFreq *rem;
-	WFreq *results;
-	int k = 0;
-	Dict gutenburgDict = newDict();
-
-	assert(in != NULL);
-	while(fgets(line, 1000, in) != NULL)
-	{
-		if(strncmp(line, STARTING, 12) == 0) break;
-		for(i = 0; i < strlen(line); i++)	{line[i] = '\0';}
-	}
-
-
-	while(fgets(line, 1000, in) != NULL)
-	{
-		if(strncmp(line, ENDING, 10) == 0)	break;
-		j = 0;
-		for(int i = 0; i < strlen(line); i++)
-		{
-			if(line[i] != ' ' && isWordChar(line[i]))
-			{
-				if(line[i] >= 65 && line[i] <= 90)	
-				{				
-					word[j] = line[i] + 32;
-				}
-				else 
-				{		
-					word[j] = line[i];
-				}
-				j++;
-	
-			}
-			if(line[i] == ' ' || !isWordChar(line[i]))
-			{
-				rem = DictFind(stopwordDict, word);
-				if(rem == NULL && j > 0)	
-				{
-					k = stem(word, 0, (strlen(word)-1));
-					word[k+1] = '\0';
-					rem = DictInsert(gutenburgDict, word);
-					printf("(%s, %d)\n", rem->word, rem->freq);
-				}				
-				for (int k = 0; k < j; k++)
-				{
-					word[k+1] = '\0';
-				}
-				j = 0;
-			}
-		
-		}
-		for(i = 0; i < strlen(line); i++)	line[i] = '\0';
-	}
-	//int topN = findTopN(gutenburgDict, results, 10);
-	//for(int i = 0; i < topN; i++)	printf("(%s, %d)\n", results->word, results->freq);
-
-
-
 	fclose(in);
-
-*/
-
+	//printf("%s", gutenburg->tree->data.word);
+	
+	int topN = findTopN(gutenburg, results, 50);
+	for(int i = 0; i < topN; i++)	printf("(%s, %d)\n", (*(results+i)).word, (*(results+i)).freq);
+	
 	//destroyTree(stopwordDict->tree);
 	//destroyTree(gutenburgDict->tree);
 	//destroyDict(stopwordDict);
