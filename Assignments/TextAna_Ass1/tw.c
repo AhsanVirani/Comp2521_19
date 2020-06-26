@@ -31,7 +31,6 @@ int main( int argc, char *argv[])
 	int k = 0;	// output from stem
 
    FILE  *in;         // currently open file
-   Dict   wfreqs;     // dictionary of words from book
    WFreq *results;    // array of top N (word,freq) pairs
                       // (dynamically allocated)
 
@@ -40,6 +39,7 @@ int main( int argc, char *argv[])
 
    char   line[MAXLINE] = "";  // current input line
    char   word[MAXWORD] = "";  // current word
+	char   stopwordfill[MAXWORD] = "";  // word for stopword fill
 
    // process command-line args
    switch (argc) {
@@ -61,25 +61,29 @@ int main( int argc, char *argv[])
    }
 
    // build stopword dictionary
-	in = fopen("stopwords", "r");
+	in = fopen(STOPWORDS, "r");
 	if(in == NULL)	
 	{	
 		fprintf(stderr, "Can't open stopwords\n");
 		exit(EXIT_FAILURE);
 	}	
-	while(fscanf(in, "%s", word) != EOF)	DictInsert(stopwordDict, word);
+	while(fscanf(in, "%s", stopwordfill) != EOF)	DictInsert(stopwordDict, stopwordfill);
 	fclose(in);
   
 
    // scan File, up to start of text
 	in = fopen(fileName, "r");
-	assert(in != NULL);
+	if(in == NULL)
+	{
+		fprintf(stderr, "Can't open %s\n",fileName);
+		exit(EXIT_FAILURE);
+	}
 	while(fgets(line, MAXLINE, in) != NULL)
 	{
-		if(strncmp(line, "*** START OF", 12) == 0)	break;
+		if(strncmp(line, STARTING, 12) == 0)	break;
 	}
 	///////// IF COULDNT FIND START OF LINE //////////
-	if(strncmp(line, "*** START OF", 12) != 0)
+	if(strncmp(line, STARTING, 12) != 0)
 	{
 		fprintf(stderr, "Not a Project Gutenberg book\n");
 		exit(EXIT_FAILURE);
@@ -87,7 +91,8 @@ int main( int argc, char *argv[])
 
 
    // scan File reading words and accumualting counts
-	while(fgets(line, MAXLINE, in) != NULL && strncmp(line, "*** END OF", 10) != 0))
+	while(fgets(line, MAXLINE, in) != NULL)
+		if(strncmp(line, ENDING, 10) == 0)	break;
 	{
 		for(int i = 0; i < strlen(line); i++)
 		{
@@ -112,7 +117,7 @@ int main( int argc, char *argv[])
 					k = stem(word, 0, (strlen(word)-1));
 					word[k+1] = '\0';
 					match = DictInsert(gutenburgDict, word);
-					printf("(%s, %d)\n", match->word, match->freq);
+					match = NULL;
 				}				
 				
 				for (int k = 0; k < j; k++) word[k] = '\0';
