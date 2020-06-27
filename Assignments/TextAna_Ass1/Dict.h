@@ -29,6 +29,4 @@ int findTopN(Dict d, WFreq *wfs, int n);
 // print a dictionary
 void showDict(Dict d);
 
-int white_box(void);
-
 #endif

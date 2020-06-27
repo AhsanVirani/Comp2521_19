@@ -1,4 +1,5 @@
 // COMP2521 20T2 Assignment 1
+// by Ahsan Muhammad (z5188798)
 // tw.c ... compute top N most frequent words in file F
 // Usage: ./tw [Nwords] File
 
@@ -23,12 +24,12 @@
 
 int main( int argc, char *argv[])
 {
-   // TODO ... add any variables you need
-	WFreq *match;	// To check whether stopword matches word extracted from file
-   Dict stopwordDict = newDict();  // dictionary of stopwords
-	Dict gutenburgDict = newDict();
-	int j = 0;	// word len interator
-	int k = 0;	// output from stem
+   // Variables declarations
+	WFreq *isstop;							// NULL if stopword != word from file
+   Dict stopwordDict = newDict();  	// dictionary of stopwords
+	Dict gutenburg = newDict();		// dictionary of words from gutenburg project
+	int j = 0;								// word len interator
+	int k = 0;								// catch return from stemming algorithm
 
    FILE  *in;         // currently open file
    WFreq *results;    // array of top N (word,freq) pairs
@@ -39,7 +40,6 @@ int main( int argc, char *argv[])
 
    char   line[MAXLINE] = "";  // current input line
    char   word[MAXWORD] = "";  // current word
-	char   stopwordfill[MAXWORD] = "";  // word for stopword fill
 
    // process command-line args
    switch (argc) {
@@ -60,78 +60,93 @@ int main( int argc, char *argv[])
       exit(EXIT_FAILURE);
    }
 
-   // build stopword dictionary
+   ///////////////////////////////////////////////
+	////////// build stopword dictionary //////////
+	//////////////////////////////////////////////
+  
+	stopwordDict = newDict();
 	in = fopen(STOPWORDS, "r");
 	if(in == NULL)	
 	{	
 		fprintf(stderr, "Can't open stopwords\n");
 		exit(EXIT_FAILURE);
 	}	
-	while(fscanf(in, "%s", stopwordfill) != EOF)	DictInsert(stopwordDict, stopwordfill);
+	while(fgets(line, MAXWORD, in) != NULL)
+	{
+		for(int i = 0; i < strlen(line)-1; i++)	word[i] = line[i];
+		DictInsert(stopwordDict, word);
+		for(int i = 0; i < MAXWORD; i++)	word[i] = '\0';
+	}
 	fclose(in);
-  
 
-   // scan File, up to start of text
+	///////////////////////////////////////////////
+	////////// SCAN UPTO THE START OF TEXT //////////
+	//////////////////////////////////////////////
+
+	gutenburg = newDict();	
 	in = fopen(fileName, "r");
 	if(in == NULL)
 	{
-		fprintf(stderr, "Can't open %s\n",fileName);
-		exit(EXIT_FAILURE);
-	}
-	while(fgets(line, MAXLINE, in) != NULL)
-	{
-		if(strncmp(line, STARTING, 12) == 0)	break;
-	}
-	///////// IF COULDNT FIND START OF LINE //////////
-	if(strncmp(line, STARTING, 12) != 0)
-	{
-		fprintf(stderr, "Not a Project Gutenberg book\n");
+		fprintf(stderr, "Can't open %s\n", fileName);
 		exit(EXIT_FAILURE);
 	}
 
-
-   // scan File reading words and accumualting counts
 	while(fgets(line, MAXLINE, in) != NULL)
-		if(strncmp(line, ENDING, 10) == 0)	break;
 	{
-		for(int i = 0; i < strlen(line); i++)
+		if(strncmp(line, STARTING, strlen(STARTING)) == 0)	break;
+	}
+ 
+	//////////////////////////////////////////////////////////////////////
+	////////// SCAN FILE READING WORDS AND ACCUMULATING COUNTS //////////
+	////////////////////////////////////////////////////////////////////
+
+	while(fgets(line, MAXLINE, in) != NULL)
+	{
+		if(strcmp(line,"\n"  ) != 0 && strcmp(line,"\r\n") != 0 && strcmp(line,"\0"  ) != 0 && 1)
 		{
-			if(line[i] != ' ' && isWordChar(line[i]))
+			if(strncmp(line, ENDING, strlen(ENDING)) == 0)	break;
+			
+			for(int i = 0; i < strlen(line)-1; i++)
 			{
-				if(line[i] >= 65 && line[i] <= 90)	
-				{				
-					word[j] = line[i] + 32;
-				}
-				else 
-				{		
-					word[j] = line[i];
-				}
-				j++;
-			}
-			if(line[i] == ' ' || !isWordChar(line[i]))
-			{
-				// Got the word here
-				match = DictFind(stopwordDict, word);
-				if(match == NULL) 
+				if(line[i] != ' ' && isWordChar(line[i]))
 				{
-					k = stem(word, 0, (strlen(word)-1));
-					word[k+1] = '\0';
-					match = DictInsert(gutenburgDict, word);
-					match = NULL;
-				}				
-				
-				for (int k = 0; k < j; k++) word[k] = '\0';
-				j = 0;
+					if(line[i] >= 65 && line[i] <= 90)	word[j] = line[i] + 32;
+					else	word[j] = line[i];
+					j++;
+				}
+				else if( ( line[i] == ' ' || !isWordChar(line[i]) ) && j > 1)
+				{
+					isstop = DictFind(stopwordDict, word);
+					if(isstop == NULL) 
+					{
+						k = stem(word, 0, (strlen(word)-1));
+						word[k+1] = '\0';
+						DictInsert(gutenburg, word);
+					}			
+					for(j = 0; j < MAXWORD; j++)	word[j] = '\0';
+					j = 0;
+				}
+				else	j = 0;
 			}
-
-		}
-
+		}	
+		else continue;
 	}
 
-   // compute and display the top N words
-	int topN = findTopN(gutenburgDict, results, nWords);
-	for(int i = 0; i < topN; i++)	printf("(%s, %d)\n", results->word, results->freq);
+	fclose(in);
+	
+	//////////////////////////////////////////////////////////////////////
+	////////// COMPUTE AND DISPLAY THE TOP N WORDS //////////
+	////////////////////////////////////////////////////////////////////
 
-   // done
+	results = (WFreq *)malloc(nWords*sizeof(WFreq));
+	for(int i = 0; i < nWords; i++)
+	{
+		results[i].word = NULL; results[i].freq = -1;
+	}
+
+	int topN = findTopN(gutenburg, results, nWords);
+	for(int i = 0; i < topN; i++)	printf("\t%d %s\n", (*(results+i)).freq, (*(results+i)).word);
+
+
    return EXIT_SUCCESS;
 }

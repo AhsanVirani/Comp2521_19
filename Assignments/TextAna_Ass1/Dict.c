@@ -1,4 +1,4 @@
-
+// by Ahsan Muhammad (z5188798)
 // COMP2521 20T2 Assignment 1
 // Dict.c ... implementsation of Dictionary ADT
 
@@ -10,9 +10,8 @@
 #include <ctype.h>
 #include "Dict.h"
 #include "WFreq.h"
+#include "stemmer.h"
 
-#define isWordChar(c) (isalnum(c) || (c) == '\'' || (c) == '-')
-//#include "Queue.h"
 
 typedef struct _DictNode *Link;
 
@@ -55,17 +54,17 @@ int max(int, int);
 static
 void preorderTraversal(Link);
 
-//static
-//void destoryTree(Link);
+static
+void destoryTree(Link);
 
-//static
-//void destroyDict(Dict);
+static
+void destroyDict(Dict);
 
 static
 void fillTopN(Link, WFreq *, int);
 
-//static
-//void destoryWFreq(WFreq *);
+static
+void destoryWFreq(WFreq *);
 
 
 // create new empty Dictionary
@@ -116,24 +115,26 @@ void setData(Link node, char *w)
 
 // Rotate Tree Right
 static
-Link rotateRight(Link node)
+Link rotateRight(Link n1)
 {
-	if(node == NULL || node->left == NULL)	return node;
-	Link tmp = node->left;
-	node->left = tmp->right;
-	tmp->right = node;
-	return tmp;
+	if (n1 == NULL) return NULL;
+	Link n2 = n1->left;
+	if (n2 == NULL) return n1;
+	n1->left = n2->right;
+	n2->right = n1;
+	return n2;
 }
 
 // Rotate Tree Left
 static
-Link rotateLeft(Link node)
+Link rotateLeft(Link n2)
 {
-	if(node == NULL || node->right == NULL)	return node;
-	Link tmp = node->right;
-	node->right = node->left;
-	tmp->left = node;
-	return tmp;
+	if (n2 == NULL) return NULL;
+	Link n1 = n2->right;
+	if (n1 == NULL) return n2;
+	n2->right = n1->left;
+	n1->left = n2;
+	return n1;
 }
 
 // Find height of tree
@@ -160,7 +161,7 @@ void preorderTraversal(Link root)
 	preorderTraversal(root->left);
 	preorderTraversal(root->right);
 }
-/*
+
 // Destroy Dictionary
 static
 void destroyTree(Link root)
@@ -186,7 +187,7 @@ void destoryWFreq(WFreq *wfs)
 	free(wfs);
 	return;
 }
-*/
+
 // Avl tree implementation
 static
 Link insertAVL(Link root, char *w)
@@ -197,11 +198,13 @@ Link insertAVL(Link root, char *w)
 		setData(root, w);
 		return root;
 	}
-	else if(strcmp(w, root->data.word) > 0)	root->left = insertAVL(root->left, w);
-	else if(strcmp(w, root->data.word) < 0)	root->right = insertAVL(root->right, w);
-
+	else {
+		if(strcmp(w, root->data.word) > 0)	root->left = insertAVL(root->left, w);
+		else if(strcmp(w, root->data.word) < 0)	root->right = insertAVL(root->right, w);
+	} 
 	int Lheight = treeHeight(root->left);
 	int Rheight = treeHeight(root->right);
+
 
 	if((Lheight - Rheight) > 1)
 	{	
@@ -275,12 +278,6 @@ int findTopN(Dict d, WFreq *wfs, int n)
 {
 	assert(d != NULL && wfs != NULL && n > 0);
 	
-	wfs = (WFreq *)malloc(n*sizeof(WFreq));
-	for(int i = 0; i < n; i++)
-	{
-		wfs[i].word = NULL; wfs[i].freq = -1;
-	}
-	
 	fillTopN(d->tree, wfs, n);
 	
 	int member = 0;
@@ -288,8 +285,6 @@ int findTopN(Dict d, WFreq *wfs, int n)
 	
    return member;
 }
-
-// Show WFreq
 
 // print a dictionary
 // Showing Dict in preorder traversal order
@@ -300,3 +295,118 @@ void showDict(Dict d)
    return;
 }
 
+static
+WFreq *makeWFreq(int n)
+{
+	WFreq *wfs = (WFreq *)malloc(n*sizeof(WFreq));
+	for(int i = 0; i < n; i++)
+	{
+		wfs[i].word = NULL; wfs[i].freq = -1;
+	}
+	return wfs;
+
+}
+
+/*
+// White Box Testing
+int
+white_box(void)
+{
+
+
+///////////////////
+// Stopwords Dictionary
+//////////////////
+
+	Dict stopwordDict = newDict();	// 1 stopword Dict
+	FILE *in;
+	char line[MAXLINE] = "";
+	char word[MAXWORD] = "";
+
+
+	in = fopen(STOPWORDS, "r");
+	if(in == NULL)	
+	{	
+		fprintf(stderr, "Can't open stopwords\n");
+		exit(EXIT_FAILURE);
+	}	
+	while(fgets(line, MAXWORD, in) != NULL)
+	{
+		for(int i = 0; i < strlen(line)-1; i++)	word[i] = line[i];
+		DictInsert(stopwordDict, word);
+		for(int i = 0; i < MAXWORD; i++)	word[i] = '\0';
+	}
+	fclose(in);
+	
+//////////////////
+// Scan File up to start of the text
+/////////////////
+
+	Dict gutenburg = newDict();	// 1 gutenburg Dict
+	in = fopen("0011.txt", "r");
+	if(in == NULL)
+	{
+		fprintf(stderr, "Can't open %s\n","0011.txt");
+		exit(EXIT_FAILURE);
+	}
+
+	while(fgets(line, MAXLINE, in) != NULL)
+	{
+		if(strncmp(line, STARTING, strlen(STARTING)) == 0)	break;
+	}
+		
+	int j; // to fill word
+	int k = 0; // for stemming purpose
+	WFreq *isstop;	// To check whether stopword matches word extracted from file
+	WFreq *results = makeWFreq(50);	// WFreq array
+	while(fgets(line, MAXLINE, in) != NULL)
+	{
+		if(strcmp(line,"\n"  ) != 0 && strcmp(line,"\r\n") != 0 && strcmp(line,"\0"  ) != 0 && 1)
+		{
+			if(strncmp(line, ENDING, strlen(ENDING)) == 0)	break;
+			
+			for(int i = 0; i < strlen(line)-1; i++)
+			{
+				if(line[i] != ' ' && isWordChar(line[i]))
+				{
+					if(line[i] >= 65 && line[i] <= 90)	
+					{				
+						word[j] = line[i] + 32;
+					}
+					else 
+					{		
+						word[j] = line[i];
+					}
+					j++;
+				}
+				else if( ( line[i] == ' ' || !isWordChar(line[i]) ) && j > 1)
+				{
+					isstop = DictFind(stopwordDict, word);
+					if(isstop == NULL) 
+					{
+						k = stem(word, 0, (strlen(word)-1));
+						word[k+1] = '\0';
+						DictInsert(gutenburg, word);
+					}			
+					for(j = 0; j < MAXWORD; j++)	word[j] = '\0';
+					j = 0;
+				}
+				else	j = 0;
+			}
+		}	
+		else continue;
+	}
+
+	fclose(in);
+	
+	int topN = findTopN(gutenburg, results, 50);
+	for(int i = 0; i < topN; i++)	printf("(%s, %d)\n", (*(results+i)).word, (*(results+i)).freq);
+	
+	destroyTree(stopwordDict->tree);
+	destroyTree(gutenburg->tree);
+	destroyDict(stopwordDict);
+	destroyDict(gutenburg);
+	destoryWFreq(results);
+	return 0;
+}
+*/

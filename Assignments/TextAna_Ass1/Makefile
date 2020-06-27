@@ -1,21 +1,22 @@
+# COMP2521 20T2 Assignment 1
 
 CC=gcc
-CFLAGS=-Wall -Werror -g
-OBJS=testDict.o
+CFLAGS=-Wall -g
+OBJS=tw.o Dict.o stemmer.o
 
-all : testDict
+all : tw stem
 
-testDict : testDict.o Dict.o stemmer.o
-	$(CC) -o testDict testDict.o Dict.o stemmer.o
+tw : $(OBJS)
 
-testDict.o : dictionary.c Dict.h WFreq.h 
-	$(CC) $(CFLAGS) -c testDict.c
+stem : stem.o stemmer.o
 
-Dict.o : dictionary.c Dict.h WFreq.h stemmer.h
-	$(CC) $(CFLAGS) -c dictionary.c
+tw.o : tw.c Dict.h WFreq.h stemmer.h 
 
-stemmer.o : stemmer.c stemmer.h
-	$(CC) $(CFLAGS) -c stemmer.c
+Dict.o : Dict.c Dict.h WFreq.h
+
+stemmer.o : stemmer.c
+
+stem.o : stem.c stemmer.h
 
 clean :
-	rm -f testDict
+	rm -f tw stem $(OBJS) stem.o core
