@@ -295,8 +295,6 @@ int findTopN(Dict d, WFreq *wfs, int n)
    return member;
 }
 
-// Show WFreq
-
 // print a dictionary
 // Showing Dict in preorder traversal order
 void showDict(Dict d)
@@ -329,7 +327,7 @@ white_box(void)
 // Stopwords Dictionary
 //////////////////
 
-	Dict stopwordDict = newDict();
+	Dict stopwordDict = newDict();	// 1 stopword Dict
 	FILE *in;
 	char line[MAXLINE] = "";
 	char word[MAXWORD] = "";
@@ -349,12 +347,11 @@ white_box(void)
 	}
 	fclose(in);
 	
-	//showDict(stopwordDict);
 //////////////////
 // Scan File up to start of the text
 /////////////////
 
-	Dict gutenburg = newDict();
+	Dict gutenburg = newDict();	// 1 gutenburg Dict
 	in = fopen("0011.txt", "r");
 	if(in == NULL)
 	{
@@ -370,16 +367,12 @@ white_box(void)
 	int j; // to fill word
 	int k = 0; // for stemming purpose
 	WFreq *isstop;	// To check whether stopword matches word extracted from file
-	WFreq *results = makeWFreq(50);
+	WFreq *results = makeWFreq(50);	// WFreq array
 	while(fgets(line, MAXLINE, in) != NULL)
 	{
-		// Line has content so do something
 		if(strcmp(line,"\n"  ) != 0 && strcmp(line,"\r\n") != 0 && strcmp(line,"\0"  ) != 0 && 1)
 		{
-			// If line reads ENDING point then break
 			if(strncmp(line, ENDING, strlen(ENDING)) == 0)	break;
-			
-			// takes characters from line and form word. apply relevant checks.
 			
 			for(int i = 0; i < strlen(line)-1; i++)
 			{
@@ -396,8 +389,7 @@ white_box(void)
 					j++;
 				}
 				else if( ( line[i] == ' ' || !isWordChar(line[i]) ) && j > 1)
-				{	// got the word here
-
+				{
 					isstop = DictFind(stopwordDict, word);
 					if(isstop == NULL) 
 					{
@@ -405,29 +397,24 @@ white_box(void)
 						word[k+1] = '\0';
 						DictInsert(gutenburg, word);
 					}			
-					
-		
 					for(j = 0; j < MAXWORD; j++)	word[j] = '\0';
 					j = 0;
 				}
-		
 				else	j = 0;
 			}
-		}
-		// Line is empty so skip to next line
-		
+		}	
 		else continue;
 	}
 
 	fclose(in);
-	//printf("%s", gutenburg->tree->data.word);
 	
 	int topN = findTopN(gutenburg, results, 50);
 	for(int i = 0; i < topN; i++)	printf("(%s, %d)\n", (*(results+i)).word, (*(results+i)).freq);
 	
-	//destroyTree(stopwordDict->tree);
-	//destroyTree(gutenburgDict->tree);
-	//destroyDict(stopwordDict);
-	//destroyDict(gutenburgDict);
+	destroyTree(stopwordDict->tree);
+	destroyTree(gutenburg->tree);
+	destroyDict(stopwordDict);
+	destroyDict(gutenburg);
+	destoryWFreq(results);
 	return 0;
 }
