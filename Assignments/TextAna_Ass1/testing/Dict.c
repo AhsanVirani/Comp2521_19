@@ -11,6 +11,7 @@
 #include "Dict.h"
 #include "WFreq.h"
 #include "stemmer.h"
+#include "Queue.h"
 
 #define isWordChar(c) (isalnum(c) || (c) == '\'' || (c) == '-')
 #define STARTING "*** START OF"
@@ -27,6 +28,7 @@ typedef struct  _DictNode {
    WFreq  data;
    Link   left;
    Link   right;
+	int height;
 } DictNode;
 
 struct _DictRep {
@@ -62,17 +64,14 @@ int max(int, int);
 static
 void preorderTraversal(Link);
 
-static
-void destoryTree(Link);
-
-static
-void destroyDict(Dict);
 
 static
 void fillTopN(Link, WFreq *, int);
 
+static int getHeight(Link);
+
 static
-void destoryWFreq(WFreq *);
+void TreeLevelOrder (Link);
 
 
 // create new empty Dictionary
@@ -84,6 +83,7 @@ Dict newDict()
    return root;
 }
 
+
 // create new empty node
 static
 Link newNode()
@@ -91,7 +91,7 @@ Link newNode()
 	Link node = malloc(sizeof(DictNode));
 	assert(node != NULL);
 	node->data.word = NULL;	
-	node->data.freq = 0;
+	node->data.freq = 0; node->height = 0;
 	node->left = node->right = NULL;
 	return node;
 }
@@ -196,6 +196,14 @@ void destoryWFreq(WFreq *wfs)
 	return;
 }
 
+static 
+int getHeight(Link n )
+{
+	if( n == NULL )
+        return -1;
+	return n->height;
+}
+
 // Avl tree implementation
 static
 Link insertAVL(Link root, char *w)
@@ -204,27 +212,30 @@ Link insertAVL(Link root, char *w)
 	{
 		root = newNode();
 		setData(root, w);
+		root->height = 0;	// upda height
 		return root;
 	}
-	else {
-		if(strcmp(w, root->data.word) > 0)	root->left = insertAVL(root->left, w);
-		else if(strcmp(w, root->data.word) < 0)	root->right = insertAVL(root->right, w);
-	} 
-	int Lheight = treeHeight(root->left);
-	int Rheight = treeHeight(root->right);
 
-
-	if((Lheight - Rheight) > 1)
-	{	
-		if(strcmp(w, root->left->data.word) < 0)	root->left = rotateLeft(root->left);
-		root = rotateRight(root);
-	}
-	else if((Rheight - Lheight) > 1)
+	else if(strcmp(w, root->data.word) > 0)	
 	{
-		if(strcmp(w, root->right->data.word) > 0)	root->right = rotateRight(root->right);
-		root = rotateLeft(root);
+		root->left = insertAVL(root->left, w);
+		if( getHeight(root->left) - getHeight(root->right) == 2)
+		{
+			if(strcmp(w, root->left->data.word) < 0)	root->left = rotateLeft(root->left);
+			root = rotateRight(root);
+		}	
+	}	
+	else if(strcmp(w, root->data.word) < 0)	
+	{		
+		root->right = insertAVL(root->right, w);
+		if( getHeight(root->right) - getHeight(root->left) == 2)
+		{		
+			if(strcmp(w, root->right->data.word) > 0)	root->right = rotateRight(root->right);
+			root = rotateLeft(root);
+		}
 	}
-
+	root->height = max(getHeight(root->left), getHeight(root->right)) + 1;
+	// do something with height
 	return root;
 }
 
@@ -266,7 +277,7 @@ void fillTopN(Link root, WFreq *wfs, int n)
 	
 	for(int i = 0; i < n; i++)
 	{
-		if(root->data.freq >= wfs[i].freq)
+		if(root->data.freq > wfs[i].freq || (root->data.freq == wfs[i].freq && strcmp(root->data.word, wfs[i].word) < 0))
 		{
 			WFreq tmp = wfs[i];
 			wfs[i] = root->data;
@@ -275,6 +286,14 @@ void fillTopN(Link root, WFreq *wfs, int n)
 			
 			if(i+1 < n && tmp.word != NULL)	wfs[i+1] = tmp;	
 			break;
+		}
+		else if((root->data.freq == wfs[i].freq && strcmp(root->data.word, wfs[i].word) > 0) && (i+1) < n)
+		{
+			WFreq tmp = wfs[i+1];
+			wfs[i+1] = root->data;
+			for(int j = n-2; j > i+1; j--)	wfs[j+1] = wfs[j];
+			if(i+2 < n)	wfs[i+2] = tmp;
+			break;	
 		}
 	}
 }
@@ -300,7 +319,7 @@ int findTopN(Dict d, WFreq *wfs, int n)
 void showDict(Dict d)
 {
 	preorderTraversal(d->tree);	
-
+	//TreeLevelOrder (d->tree);
    return;
 }
 
@@ -314,6 +333,26 @@ WFreq *makeWFreq(int n)
 	}
 	return wfs;
 
+}
+
+
+// print values in level-order
+static
+void TreeLevelOrder (Link t)
+{
+	if (t == NULL)	return;
+	// initialise Queue
+	Queue q = newQueue ();
+	// add T's root node to queue
+	QueueJoin (q, t);
+	while (!QueueIsEmpty (q))
+	{
+		t = QueueLeave (q);
+		printf ("%d %s\n", t->data.freq,t->data.word);
+		if (t->left != NULL)	QueueJoin (q, t->left);
+		if (t->right != NULL)	QueueJoin (q, t->right);
+	} // TODO
+	dropQueue(q);
 }
 
 
@@ -347,15 +386,17 @@ white_box(void)
 	}
 	fclose(in);
 	
+	
+
 //////////////////
 // Scan File up to start of the text
 /////////////////
 
 	Dict gutenburg = newDict();	// 1 gutenburg Dict
-	in = fopen("0011.txt", "r");
+	in = fopen("/home/ason/proj/Comp2521_20/Assignments/TextAna_Ass1/data/2600.txt", "r");
 	if(in == NULL)
 	{
-		fprintf(stderr, "Can't open %s\n","0011.txt");
+		fprintf(stderr, "Can't open %s\n","2600.txt");
 		exit(EXIT_FAILURE);
 	}
 
@@ -366,15 +407,14 @@ white_box(void)
 		
 	int j; // to fill word
 	int k = 0; // for stemming purpose
-	WFreq *isstop;	// To check whether stopword matches word extracted from file
 	WFreq *results = makeWFreq(50);	// WFreq array
-	while(fgets(line, MAXLINE, in) != NULL)
+	while(fgets(line, MAXLINE, in) != NULL)										// loop (n)
 	{
 		if(strcmp(line,"\n"  ) != 0 && strcmp(line,"\r\n") != 0 && strcmp(line,"\0"  ) != 0 && 1)
 		{
 			if(strncmp(line, ENDING, strlen(ENDING)) == 0)	break;
 			
-			for(int i = 0; i < strlen(line)-1; i++)
+			for(int i = 0; i < strlen(line)-1; i++)								// loop (strlen of line)
 			{
 				if(line[i] != ' ' && isWordChar(line[i]))
 				{
@@ -390,14 +430,13 @@ white_box(void)
 				}
 				else if( ( line[i] == ' ' || !isWordChar(line[i]) ) && j > 1)
 				{
-					isstop = DictFind(stopwordDict, word);
-					if(isstop == NULL) 
+					if(DictFind(stopwordDict, word) == NULL) 
 					{
 						k = stem(word, 0, (strlen(word)-1));
 						word[k+1] = '\0';
 						DictInsert(gutenburg, word);
 					}			
-					for(j = 0; j < MAXWORD; j++)	word[j] = '\0';
+					for(j = 0; j < MAXWORD; j++)	word[j] = '\0';			// loop (strlen of word (100))
 					j = 0;
 				}
 				else	j = 0;
@@ -410,11 +449,12 @@ white_box(void)
 	
 	int topN = findTopN(gutenburg, results, 50);
 	for(int i = 0; i < topN; i++)	printf("(%s, %d)\n", (*(results+i)).word, (*(results+i)).freq);
-	
+
 	destroyTree(stopwordDict->tree);
 	destroyTree(gutenburg->tree);
 	destroyDict(stopwordDict);
 	destroyDict(gutenburg);
 	destoryWFreq(results);
+
 	return 0;
 }

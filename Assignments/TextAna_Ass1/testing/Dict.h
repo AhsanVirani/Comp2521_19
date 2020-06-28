@@ -7,6 +7,7 @@
 #include "WFreq.h"
 
 typedef struct _DictRep *Dict;
+typedef struct _DictNode *Link;
 // Added this. Remove bf Submission
 //typedef struct _DictNode *Link;
 

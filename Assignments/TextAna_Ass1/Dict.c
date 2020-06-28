@@ -55,16 +55,7 @@ static
 void preorderTraversal(Link);
 
 static
-void destoryTree(Link);
-
-static
-void destroyDict(Dict);
-
-static
 void fillTopN(Link, WFreq *, int);
-
-static
-void destoryWFreq(WFreq *);
 
 
 // create new empty Dictionary
@@ -162,32 +153,6 @@ void preorderTraversal(Link root)
 	preorderTraversal(root->right);
 }
 
-// Destroy Dictionary
-static
-void destroyTree(Link root)
-{
-	if(root == NULL)	return;
-	destroyTree(root->left);
-	destroyTree(root->right);	
-	free(root->data.word); free(root);	return;
-}
-
-// Destroy Dict Rep
-static
-void destroyDict(Dict d)
-{
-	free(d);
-	return;
-}
-
-// Free WFreq array
-static
-void destoryWFreq(WFreq *wfs)
-{
-	free(wfs);
-	return;
-}
-
 // Avl tree implementation
 static
 Link insertAVL(Link root, char *w)
@@ -258,7 +223,7 @@ void fillTopN(Link root, WFreq *wfs, int n)
 	
 	for(int i = 0; i < n; i++)
 	{
-		if(root->data.freq >= wfs[i].freq)
+		if(root->data.freq > wfs[i].freq || (root->data.freq == wfs[i].freq && strcmp(root->data.word, wfs[i].word) < 0))
 		{
 			WFreq tmp = wfs[i];
 			wfs[i] = root->data;
@@ -268,8 +233,17 @@ void fillTopN(Link root, WFreq *wfs, int n)
 			if(i+1 < n && tmp.word != NULL)	wfs[i+1] = tmp;	
 			break;
 		}
+		else if((root->data.freq == wfs[i].freq && strcmp(root->data.word, wfs[i].word) > 0) && (i+1) < n)
+		{
+			WFreq tmp = wfs[i+1];
+			wfs[i+1] = root->data;
+			for(int j = n-2; j > i+1; j--)	wfs[j+1] = wfs[j];
+			if(i+2 < n)	wfs[i+2] = tmp;
+			break;	
+		}
 	}
 }
+
 
 // find top N frequently occurring words in Dict
 // input: Dictionary, array of WFreqs, size of array
@@ -295,118 +269,3 @@ void showDict(Dict d)
    return;
 }
 
-static
-WFreq *makeWFreq(int n)
-{
-	WFreq *wfs = (WFreq *)malloc(n*sizeof(WFreq));
-	for(int i = 0; i < n; i++)
-	{
-		wfs[i].word = NULL; wfs[i].freq = -1;
-	}
-	return wfs;
-
-}
-
-/*
-// White Box Testing
-int
-white_box(void)
-{
-
-
-///////////////////
-// Stopwords Dictionary
-//////////////////
-
-	Dict stopwordDict = newDict();	// 1 stopword Dict
-	FILE *in;
-	char line[MAXLINE] = "";
-	char word[MAXWORD] = "";
-
-
-	in = fopen(STOPWORDS, "r");
-	if(in == NULL)	
-	{	
-		fprintf(stderr, "Can't open stopwords\n");
-		exit(EXIT_FAILURE);
-	}	
-	while(fgets(line, MAXWORD, in) != NULL)
-	{
-		for(int i = 0; i < strlen(line)-1; i++)	word[i] = line[i];
-		DictInsert(stopwordDict, word);
-		for(int i = 0; i < MAXWORD; i++)	word[i] = '\0';
-	}
-	fclose(in);
-	
-//////////////////
-// Scan File up to start of the text
-/////////////////
-
-	Dict gutenburg = newDict();	// 1 gutenburg Dict
-	in = fopen("0011.txt", "r");
-	if(in == NULL)
-	{
-		fprintf(stderr, "Can't open %s\n","0011.txt");
-		exit(EXIT_FAILURE);
-	}
-
-	while(fgets(line, MAXLINE, in) != NULL)
-	{
-		if(strncmp(line, STARTING, strlen(STARTING)) == 0)	break;
-	}
-		
-	int j; // to fill word
-	int k = 0; // for stemming purpose
-	WFreq *isstop;	// To check whether stopword matches word extracted from file
-	WFreq *results = makeWFreq(50);	// WFreq array
-	while(fgets(line, MAXLINE, in) != NULL)
-	{
-		if(strcmp(line,"\n"  ) != 0 && strcmp(line,"\r\n") != 0 && strcmp(line,"\0"  ) != 0 && 1)
-		{
-			if(strncmp(line, ENDING, strlen(ENDING)) == 0)	break;
-			
-			for(int i = 0; i < strlen(line)-1; i++)
-			{
-				if(line[i] != ' ' && isWordChar(line[i]))
-				{
-					if(line[i] >= 65 && line[i] <= 90)	
-					{				
-						word[j] = line[i] + 32;
-					}
-					else 
-					{		
-						word[j] = line[i];
-					}
-					j++;
-				}
-				else if( ( line[i] == ' ' || !isWordChar(line[i]) ) && j > 1)
-				{
-					isstop = DictFind(stopwordDict, word);
-					if(isstop == NULL) 
-					{
-						k = stem(word, 0, (strlen(word)-1));
-						word[k+1] = '\0';
-						DictInsert(gutenburg, word);
-					}			
-					for(j = 0; j < MAXWORD; j++)	word[j] = '\0';
-					j = 0;
-				}
-				else	j = 0;
-			}
-		}	
-		else continue;
-	}
-
-	fclose(in);
-	
-	int topN = findTopN(gutenburg, results, 50);
-	for(int i = 0; i < topN; i++)	printf("(%s, %d)\n", (*(results+i)).word, (*(results+i)).freq);
-	
-	destroyTree(stopwordDict->tree);
-	destroyTree(gutenburg->tree);
-	destroyDict(stopwordDict);
-	destroyDict(gutenburg);
-	destoryWFreq(results);
-	return 0;
-}
-*/

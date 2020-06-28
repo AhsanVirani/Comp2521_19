@@ -145,7 +145,7 @@ int main( int argc, char *argv[])
 	}
 
 	int topN = findTopN(gutenburg, results, nWords);
-	for(int i = 0; i < topN; i++)	printf("\t%d %s\n", (*(results+i)).freq, (*(results+i)).word);
+	for(int i = 0; i < topN; i++)	printf("     %d %s\n", (*(results+i)).freq, (*(results+i)).word);
 
 
    return EXIT_SUCCESS;
