@@ -1,4 +1,4 @@
-// by Ahsan Muhammad (z5188798)
+// By Ahsan Muhammad (z5188798)
 // COMP2521 20T2 Assignment 1
 // Dict.c ... implementsation of Dictionary ADT
 
@@ -26,7 +26,7 @@ struct _DictRep {
    Link tree;
 };
 
-// Defintion of static Function used
+// Defintion of static Functions used
 
 static
 Link newNode();
@@ -59,16 +59,17 @@ static
 void fillTopN(Link, WFreq *, int);
 
 
-// create new empty Dictionary
+// create a new empty Dictionary
 Dict newDict()
 {
 	Dict root = malloc(sizeof(struct _DictRep));
 	assert(root != NULL);
 	root->tree = NULL;
+
    return root;
 }
 
-// create new empty node
+// create a new empty node
 static
 Link newNode()
 {
@@ -77,10 +78,11 @@ Link newNode()
 	node->data.word = NULL;	
 	node->data.freq = 0; node->height = 0;
 	node->left = node->right = NULL;
+
 	return node;
 }
 
-// Set the data of the node
+// Set the data struct inside of the node
 static
 void setData(Link node, char *w)
 {
@@ -91,7 +93,7 @@ void setData(Link node, char *w)
 
 // Returns the pointer of the node containing word if found
 // NULL otherwise
-
+// Helper function for DictFind
 static
 Link inDict(Link root, char *w)
 {
@@ -102,11 +104,11 @@ Link inDict(Link root, char *w)
 	if(strcmp(w, root->data.word) == 0)	return root;
 	else if(strcmp(w, root->data.word) > 0)	found = inDict(root->left, w);
 	else if(strcmp(w, root->data.word) < 0)	found = inDict(root->right, w);
-	
+
 	return found;
 }
 
-// Rotate Tree Right
+// Rotates the Tree Right
 static
 Link rotateRight(Link n1)
 {
@@ -115,13 +117,14 @@ Link rotateRight(Link n1)
 	if (n2 == NULL) return n1;
 	n1->left = n2->right;
 	n2->right = n1;
-	// updating heights
+	// updating heights here
 	n2->height = max(getHeight(n2->left), getHeight(n2->right)) + 1;
 	n2->right->height = max(getHeight(n2->right->left), getHeight(n2->right->right)) + 1;
+
 	return n2;
 }
 
-// Rotate Tree Left
+// Rotates the Tree Left
 static
 Link rotateLeft(Link n2)
 {
@@ -130,28 +133,32 @@ Link rotateLeft(Link n2)
 	if (n1 == NULL) return n2;
 	n2->right = n1->left;
 	n1->left = n2;
-	// updating heights
+	// updating heights here
 	n1->height = max(getHeight(n1->left), getHeight(n1->right)) + 1;
 	n1->left->height = max(getHeight(n1->left->left), getHeight(n1->left->right)) + 1;
+
 	return n1;
 }
 
+// Returns the height of a given node
+// -1 if NULL
 static 
 int getHeight(Link n)
 {
-	if( n == NULL )
-        return -1;
+	if( n == NULL )	return -1;
 	return n->height;
 }
 
-// Returns of maximum height of subtree
+// Returns maximum of two integer types
+// Helper function for calculating height of a Tree
 static
 int max(int a, int b)
 {
 	return a > b? a : b;
 }
 
-// Print tree in preorder traversal i.e. NLR
+// Print tree in preorder traversal i.e. (NLR)
+// Helper function for showDict
 static
 void preorderTraversal(Link root)
 {
@@ -176,7 +183,7 @@ Link insertAVL(Link root, char *w)
 	else if(strcmp(w, root->data.word) > 0)	
 	{
 		root->left = insertAVL(root->left, w);
-		if( getHeight(root->left) - getHeight(root->right) == 2)
+		if(getHeight(root->left) - getHeight(root->right) == 2)
 		{
 			if(strcmp(w, root->left->data.word) < 0)	root->left = rotateLeft(root->left);
 			root = rotateRight(root);
@@ -201,7 +208,7 @@ Link insertAVL(Link root, char *w)
 WFreq *DictInsert(Dict d, char *w)
 {
 	assert(d != NULL && w != NULL);
-	
+
 	Link exist = inDict(d->tree, w);
 	if(exist != NULL)
 	{
@@ -219,7 +226,6 @@ WFreq *DictInsert(Dict d, char *w)
 WFreq *DictFind(Dict d, char *w)
 {
    assert(d != NULL && w != NULL);
-	
    return &(inDict(d->tree, w)->data);
 }
 
@@ -239,17 +245,18 @@ void fillTopN(Link root, WFreq *wfs, int n)
 		{
 			WFreq tmp = wfs[i];
 			wfs[i] = root->data;
-	
 			for(int j = n-2; j > i; j--)	wfs[j+1] = wfs[j];
-			
+
 			if(i+1 < n && tmp.word != NULL)	wfs[i+1] = tmp;	
 			break;
 		}
 		else if((root->data.freq == wfs[i].freq && strcmp(root->data.word, wfs[i].word) > 0) && (i+1) < n)
 		{
+			if(wfs[i+1].word != NULL && strcmp(root->data.word, wfs[i+1].word) > 0)	continue;
 			WFreq tmp = wfs[i+1];
 			wfs[i+1] = root->data;
 			for(int j = n-2; j > i+1; j--)	wfs[j+1] = wfs[j];
+
 			if(i+2 < n)	wfs[i+2] = tmp;
 			break;	
 		}
@@ -262,10 +269,8 @@ void fillTopN(Link root, WFreq *wfs, int n)
 int findTopN(Dict d, WFreq *wfs, int n)
 {
 	assert(d != NULL && wfs != NULL && n > 0);
-
 	
 	fillTopN(d->tree, wfs, n);
-	
 	int member = 0;
 	for(int i = 0; i < n && wfs[i].word != NULL && wfs[i].freq != -1; i++)	member++;
 	

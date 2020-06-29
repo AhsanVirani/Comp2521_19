@@ -256,16 +256,17 @@ void fillTopN(Link root, WFreq *wfs, int n)
 	{
 		if(root->data.freq > wfs[i].freq || (root->data.freq == wfs[i].freq && strcmp(root->data.word, wfs[i].word) < 0))
 		{
+			printf("%s %s\n",root->data.word, wfs[i].word);
 			WFreq tmp = wfs[i];
 			wfs[i] = root->data;
-	
 			for(int j = n-2; j > i; j--)	wfs[j+1] = wfs[j];
 			
-			if(i+1 < n && tmp.word != NULL)	wfs[i+1] = tmp;	
+			if(i+1 < n)	wfs[i+1] = tmp;	
 			break;
 		}
-		else if((root->data.freq == wfs[i].freq && strcmp(root->data.word, wfs[i].word) > 0) && (i+1) < n)
+		else if(root->data.freq == wfs[i].freq && strcmp(root->data.word, wfs[i].word) > 0 && (i+1) < n)
 		{
+			if(strcmp(root->data.word, wfs[i+1].word) > 0)	continue;
 			WFreq tmp = wfs[i+1];
 			wfs[i+1] = root->data;
 			for(int j = n-2; j > i+1; j--)	wfs[j+1] = wfs[j];
@@ -370,7 +371,7 @@ white_box(void)
 /////////////////
 
 	Dict gutenburg = newDict();	// 1 gutenburg Dict
-	in = fopen("/home/ason/proj/Comp2521_20/Assignments/TextAna_Ass1/data/2600.txt", "r");
+	in = fopen("/home/ason/proj/Comp2521_20/Assignments/TextAna_Ass1/data/0174.txt", "r");
 	if(in == NULL)
 	{
 		fprintf(stderr, "Can't open %s\n","2600.txt");
@@ -384,7 +385,7 @@ white_box(void)
 		
 	int j; // to fill word
 	int k = 0; // for stemming purpose
-	WFreq *results = makeWFreq(50);	// WFreq array
+	WFreq *results = makeWFreq(100);	// WFreq array
 	while(fgets(line, MAXLINE, in) != NULL)										
 	{
 		if(strcmp(line,"\n"  ) != 0 && strcmp(line,"\r\n") != 0 && strcmp(line,"\0"  ) != 0 && 1)
@@ -423,11 +424,11 @@ white_box(void)
 	}
 
 	fclose(in);
+	printf("%s %d\n", DictFind(gutenburg, "ladi")->word, DictFind(gutenburg, "ladi")->freq);
+	int topN = findTopN(gutenburg, results, 100);
+	for(int i = 0; i < topN; i++)
+		printf("(%s, %d)\n", (*(results+i)).word, (*(results+i)).freq);
 	
-	int topN = findTopN(gutenburg, results, 50);
-	for(int i = 0; i < topN; i++)	printf("(%s, %d)\n", (*(results+i)).word, (*(results+i)).freq);
-	printf("%d %d %d\n", getHeight(stopwordDict->tree), getHeight(stopwordDict->tree->left), getHeight(stopwordDict->tree->right));
-	printf("%d %d %d\n", getHeight(gutenburg->tree), getHeight(gutenburg->tree->left), getHeight(gutenburg->tree->right));
 	/*
 	Dict d = newDict();
 	DictInsert(d, "US");
