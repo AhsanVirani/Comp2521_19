@@ -25,7 +25,6 @@
 int main( int argc, char *argv[])
 {
    // Variables declarations
-	WFreq *isstop;							// NULL if stopword != word from file
    Dict stopwordDict = newDict();  	// dictionary of stopwords
 	Dict gutenburg = newDict();		// dictionary of words from gutenburg project
 	int j = 0;								// word len interator
@@ -116,8 +115,7 @@ int main( int argc, char *argv[])
 				}
 				else if( ( line[i] == ' ' || !isWordChar(line[i]) ) && j > 1)
 				{
-					isstop = DictFind(stopwordDict, word);
-					if(isstop == NULL) 
+					if(DictFind(stopwordDict, word) == NULL) 
 					{
 						k = stem(word, 0, (strlen(word)-1));
 						word[k+1] = '\0';
@@ -145,7 +143,7 @@ int main( int argc, char *argv[])
 	}
 
 	int topN = findTopN(gutenburg, results, nWords);
-	for(int i = 0; i < topN; i++)	printf("     %d %s\n", (*(results+i)).freq, (*(results+i)).word);
+	for(int i = 0; i < topN; i++)	printf("%7d %s\n", (*(results+i)).freq, (*(results+i)).word);
 
 
    return EXIT_SUCCESS;

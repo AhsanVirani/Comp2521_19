@@ -20,8 +20,6 @@
 #define MAXLINE 1000
 #define MAXWORD 100
 
-//#include "Queue.h"
-
 typedef struct _DictNode *Link;
 
 typedef struct  _DictNode {
@@ -44,6 +42,8 @@ static
 Link inDict(Link, char *);
 
 static
+int treeHeight(Link);
+static
 void setData(Link, char *);
 
 static
@@ -54,9 +54,6 @@ Link rotateRight(Link);
 
 static
 Link rotateLeft(Link);
-
-static
-int treeHeight(Link);
 
 static
 int max(int, int);
@@ -130,9 +127,20 @@ Link rotateRight(Link n1)
 	if (n2 == NULL) return n1;
 	n1->left = n2->right;
 	n2->right = n1;
+	// updating heights
+	n2->height = max(getHeight(n2->left), getHeight(n2->right)) + 1;
+	n2->right->height = max(getHeight(n2->right->left), getHeight(n2->right->right)) + 1;
 	return n2;
 }
 
+
+// Find height of tree
+static
+int treeHeight(Link node) 
+{
+	if(node == NULL) return -1;	
+	return 1 + max(treeHeight(node->left), treeHeight(node->right));
+}
 // Rotate Tree Left
 static
 Link rotateLeft(Link n2)
@@ -142,15 +150,10 @@ Link rotateLeft(Link n2)
 	if (n1 == NULL) return n2;
 	n2->right = n1->left;
 	n1->left = n2;
+	// updating heights
+	n1->height = max(getHeight(n1->left), getHeight(n1->right)) + 1;
+	n1->left->height = max(getHeight(n1->left->left), getHeight(n1->left->right)) + 1;
 	return n1;
-}
-
-// Find height of tree
-static
-int treeHeight(Link node) 
-{
-	if(node == NULL) return -1;	
-	return 1 + max(treeHeight(node->left), treeHeight(node->right));
 }
 
 // Returns of maximum height of subtree
@@ -168,32 +171,6 @@ void preorderTraversal(Link root)
 	printf("(%s, %d)\n", root->data.word, root->data.freq);
 	preorderTraversal(root->left);
 	preorderTraversal(root->right);
-}
-
-// Destroy Dictionary
-static
-void destroyTree(Link root)
-{
-	if(root == NULL)	return;
-	destroyTree(root->left);
-	destroyTree(root->right);	
-	free(root->data.word); free(root);	return;
-}
-
-// Destroy Dict Rep
-static
-void destroyDict(Dict d)
-{
-	free(d);
-	return;
-}
-
-// Free WFreq array
-static
-void destoryWFreq(WFreq *wfs)
-{
-	free(wfs);
-	return;
 }
 
 static 
@@ -408,13 +385,13 @@ white_box(void)
 	int j; // to fill word
 	int k = 0; // for stemming purpose
 	WFreq *results = makeWFreq(50);	// WFreq array
-	while(fgets(line, MAXLINE, in) != NULL)										// loop (n)
+	while(fgets(line, MAXLINE, in) != NULL)										
 	{
 		if(strcmp(line,"\n"  ) != 0 && strcmp(line,"\r\n") != 0 && strcmp(line,"\0"  ) != 0 && 1)
 		{
 			if(strncmp(line, ENDING, strlen(ENDING)) == 0)	break;
 			
-			for(int i = 0; i < strlen(line)-1; i++)								// loop (strlen of line)
+			for(int i = 0; i < strlen(line)-1; i++)								
 			{
 				if(line[i] != ' ' && isWordChar(line[i]))
 				{
@@ -436,7 +413,7 @@ white_box(void)
 						word[k+1] = '\0';
 						DictInsert(gutenburg, word);
 					}			
-					for(j = 0; j < MAXWORD; j++)	word[j] = '\0';			// loop (strlen of word (100))
+					for(j = 0; j < MAXWORD; j++)	word[j] = '\0';			
 					j = 0;
 				}
 				else	j = 0;
@@ -449,12 +426,19 @@ white_box(void)
 	
 	int topN = findTopN(gutenburg, results, 50);
 	for(int i = 0; i < topN; i++)	printf("(%s, %d)\n", (*(results+i)).word, (*(results+i)).freq);
-
-	destroyTree(stopwordDict->tree);
-	destroyTree(gutenburg->tree);
-	destroyDict(stopwordDict);
-	destroyDict(gutenburg);
-	destoryWFreq(results);
-
+	printf("%d %d %d\n", getHeight(stopwordDict->tree), getHeight(stopwordDict->tree->left), getHeight(stopwordDict->tree->right));
+	printf("%d %d %d\n", getHeight(gutenburg->tree), getHeight(gutenburg->tree->left), getHeight(gutenburg->tree->right));
+	/*
+	Dict d = newDict();
+	DictInsert(d, "US");
+	//printf("%s %d\n", d->tree->data.word, d->tree->height);
+	DictInsert(d, "Pak");
+	//printf("%s %d %d\n", d->tree->right->data.word, d->tree->right->height, d->tree->height);
+	DictInsert(d, "England");
+	DictInsert(d, "Kenya");
+	DictInsert(d, "Australia");
+	DictInsert(d, "Afghanistan");
+	printf("%d %d %d %d %d %d\n", d->tree->height, d->tree->right->height, d->tree->right->right->height, d->tree->left->height, d->tree->left->left->height, d->tree->left->right->height );
+	*/
 	return 0;
 }

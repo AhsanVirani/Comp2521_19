@@ -12,6 +12,15 @@
 #include "WFreq.h"
 #include "stemmer.h"
 
+#define STOPWORDS "stopwords"
+#define MAXLINE 1000
+#define MAXWORD 100
+
+#define STARTING "*** START OF"
+#define ENDING   "*** END OF"
+
+#define isWordChar(c) (isalnum(c) || (c) == '\'' || (c) == '-')
+
 
 typedef struct _DictNode *Link;
 
@@ -19,7 +28,6 @@ typedef struct  _DictNode {
    WFreq  data;
    Link   left;
    Link   right;
-	int height;
 } DictNode;
 
 struct _DictRep {
@@ -32,10 +40,10 @@ static
 Link newNode();
 
 static
-void setData(Link, char *);
+Link inDict(Link, char *);
 
 static
-Link inDict(Link, char *);
+void setData(Link, char *);
 
 static
 Link insertAVL(Link, char *);
@@ -47,7 +55,7 @@ static
 Link rotateLeft(Link);
 
 static
-int getHeight(Link);
+int treeHeight(Link);
 
 static
 int max(int, int);
@@ -75,23 +83,13 @@ Link newNode()
 	Link node = malloc(sizeof(DictNode));
 	assert(node != NULL);
 	node->data.word = NULL;	
-	node->data.freq = 0; node->height = 0;
+	node->data.freq = 0;
 	node->left = node->right = NULL;
 	return node;
 }
 
-// Set the data of the node
-static
-void setData(Link node, char *w)
-{
-	assert(node != NULL && w != NULL);
-	node->data.word = strdup(w);
-	node->data.freq++;
-}
-
 // Returns the pointer of the node containing word if found
 // NULL otherwise
-
 static
 Link inDict(Link root, char *w)
 {
@@ -106,6 +104,15 @@ Link inDict(Link root, char *w)
 	return found;
 }
 
+// Set the data of the node
+static
+void setData(Link node, char *w)
+{
+	assert(node != NULL && w != NULL);
+	node->data.word = strdup(w);
+	node->data.freq++;
+}
+
 // Rotate Tree Right
 static
 Link rotateRight(Link n1)
@@ -115,9 +122,6 @@ Link rotateRight(Link n1)
 	if (n2 == NULL) return n1;
 	n1->left = n2->right;
 	n2->right = n1;
-	// updating heights
-	n2->height = max(getHeight(n2->left), getHeight(n2->right)) + 1;
-	n2->right->height = max(getHeight(n2->right->left), getHeight(n2->right->right)) + 1;
 	return n2;
 }
 
@@ -130,18 +134,15 @@ Link rotateLeft(Link n2)
 	if (n1 == NULL) return n2;
 	n2->right = n1->left;
 	n1->left = n2;
-	// updating heights
-	n1->height = max(getHeight(n1->left), getHeight(n1->right)) + 1;
-	n1->left->height = max(getHeight(n1->left->left), getHeight(n1->left->right)) + 1;
 	return n1;
 }
 
-static 
-int getHeight(Link n)
+// Find height of tree
+static
+int treeHeight(Link node) 
 {
-	if( n == NULL )
-        return -1;
-	return n->height;
+	if(node == NULL) return -1;	
+	return 1 + max(treeHeight(node->left), treeHeight(node->right));
 }
 
 // Returns of maximum height of subtree
@@ -169,30 +170,27 @@ Link insertAVL(Link root, char *w)
 	{
 		root = newNode();
 		setData(root, w);
-		root->height = 0;	
 		return root;
 	}
+	else {
+		if(strcmp(w, root->data.word) > 0)	root->left = insertAVL(root->left, w);
+		else if(strcmp(w, root->data.word) < 0)	root->right = insertAVL(root->right, w);
+	} 
+	int Lheight = treeHeight(root->left);
+	int Rheight = treeHeight(root->right);
 
-	else if(strcmp(w, root->data.word) > 0)	
-	{
-		root->left = insertAVL(root->left, w);
-		if( getHeight(root->left) - getHeight(root->right) == 2)
-		{
-			if(strcmp(w, root->left->data.word) < 0)	root->left = rotateLeft(root->left);
-			root = rotateRight(root);
-		}	
-	}	
-	else if(strcmp(w, root->data.word) < 0)	
-	{		
-		root->right = insertAVL(root->right, w);
-		if( getHeight(root->right) - getHeight(root->left) == 2)
-		{		
-			if(strcmp(w, root->right->data.word) > 0)	root->right = rotateRight(root->right);
-			root = rotateLeft(root);
-		}
+
+	if((Lheight - Rheight) > 1)
+	{	
+		if(strcmp(w, root->left->data.word) < 0)	root->left = rotateLeft(root->left);
+		root = rotateRight(root);
 	}
-	root->height = max(getHeight(root->left), getHeight(root->right)) + 1;
-	
+	else if((Rheight - Lheight) > 1)
+	{
+		if(strcmp(w, root->right->data.word) > 0)	root->right = rotateRight(root->right);
+		root = rotateLeft(root);
+	}
+
 	return root;
 }
 
@@ -225,7 +223,6 @@ WFreq *DictFind(Dict d, char *w)
 
 // fill top N by frequency in WFreq array
 // Support func for findTopN
-
 static
 void fillTopN(Link root, WFreq *wfs, int n)
 {
@@ -256,13 +253,13 @@ void fillTopN(Link root, WFreq *wfs, int n)
 	}
 }
 
+
 // find top N frequently occurring words in Dict
 // input: Dictionary, array of WFreqs, size of array
 // returns: #WFreqs in array, modified array
 int findTopN(Dict d, WFreq *wfs, int n)
 {
 	assert(d != NULL && wfs != NULL && n > 0);
-
 	
 	fillTopN(d->tree, wfs, n);
 	
@@ -277,6 +274,110 @@ int findTopN(Dict d, WFreq *wfs, int n)
 void showDict(Dict d)
 {
 	preorderTraversal(d->tree);	
+
    return;
 }
 
+// White Box Testing
+int
+white_box(void)
+{
+
+
+///////////////////
+// Stopwords Dictionary
+//////////////////
+
+	Dict stopwordDict = newDict();	// 1 stopword Dict
+	FILE *in;
+	char line[MAXLINE] = "";
+	char word[MAXWORD] = "";
+
+
+	in = fopen(STOPWORDS, "r");
+	if(in == NULL)	
+	{	
+		fprintf(stderr, "Can't open stopwords\n");
+		exit(EXIT_FAILURE);
+	}	
+	while(fgets(line, MAXWORD, in) != NULL)
+	{
+		for(int i = 0; i < strlen(line)-1; i++)	word[i] = line[i];
+		DictInsert(stopwordDict, word);
+		for(int i = 0; i < MAXWORD; i++)	word[i] = '\0';
+	}
+	fclose(in);
+	
+	
+
+//////////////////
+// Scan File up to start of the text
+/////////////////
+
+	Dict gutenburg = newDict();	// 1 gutenburg Dict
+	in = fopen("/home/ason/proj/Comp2521_20/Assignments/TextAna_Ass1/data/6130.txt", "r");
+	if(in == NULL)
+	{
+		fprintf(stderr, "Can't open %s\n","4300.txt");
+		exit(EXIT_FAILURE);
+	}
+
+	while(fgets(line, MAXLINE, in) != NULL)
+	{
+		if(strncmp(line, STARTING, strlen(STARTING)) == 0)	break;
+	}
+		
+	int j; // to fill word
+	int k = 0; // for stemming purpose
+	WFreq *results;
+	results = (WFreq *)malloc(50*sizeof(WFreq));
+	for(int i = 0; i < 50; i++)
+	{
+		results[i].word = NULL; results[i].freq = -1;
+	}
+
+	while(fgets(line, MAXLINE, in) != NULL)										// loop (n)
+	{
+		if(strcmp(line,"\n"  ) != 0 && strcmp(line,"\r\n") != 0 && strcmp(line,"\0"  ) != 0 && 1)
+		{
+			if(strncmp(line, ENDING, strlen(ENDING)) == 0)	break;
+			
+			for(int i = 0; i < strlen(line)-1; i++)								// loop (strlen of line)
+			{
+				if(line[i] != ' ' && isWordChar(line[i]))
+				{
+					if(line[i] >= 65 && line[i] <= 90)	
+					{				
+						word[j] = line[i] + 32;
+					}
+					else 
+					{		
+						word[j] = line[i];
+					}
+					j++;
+				}
+				else if( ( line[i] == ' ' || !isWordChar(line[i]) ) && j > 1)
+				{
+					if(DictFind(stopwordDict, word) == NULL) 
+					{
+						k = stem(word, 0, (strlen(word)-1));
+						word[k+1] = '\0';
+						DictInsert(gutenburg, word);
+					}			
+					for(j = 0; j < MAXWORD; j++)	word[j] = '\0';			// loop (strlen of word (100))
+					j = 0;
+				}
+				else	j = 0;
+			}
+		}	
+		else continue;
+	}
+
+	fclose(in);
+	
+	int topN = findTopN(gutenburg, results, 50);
+	for(int i = 0; i < topN; i++)	printf("(%s, %d)\n", (*(results+i)).word, (*(results+i)).freq);
+	printf("%d %d", treeHeight(stopwordDict->tree), treeHeight(gutenburg->tree));
+
+	return 0;
+}

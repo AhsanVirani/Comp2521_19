@@ -7,6 +7,7 @@
 #include "WFreq.h"
 
 typedef struct _DictRep *Dict;
+typedef struct _DictNode *Link;
 // Added this. Remove bf Submission
 //typedef struct _DictNode *Link;
 
@@ -28,5 +29,6 @@ int findTopN(Dict d, WFreq *wfs, int n);
 
 // print a dictionary
 void showDict(Dict d);
+
 
 #endif
