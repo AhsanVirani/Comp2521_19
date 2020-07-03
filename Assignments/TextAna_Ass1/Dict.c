@@ -118,8 +118,8 @@ Link rotateRight(Link n1)
 	n1->left = n2->right;
 	n2->right = n1;
 	// updating heights here
-	n2->height = max(getHeight(n2->left), getHeight(n2->right)) + 1;
 	n2->right->height = max(getHeight(n2->right->left), getHeight(n2->right->right)) + 1;
+	n2->height = max(getHeight(n2->left), getHeight(n2->right)) + 1;
 
 	return n2;
 }
@@ -134,8 +134,8 @@ Link rotateLeft(Link n2)
 	n2->right = n1->left;
 	n1->left = n2;
 	// updating heights here
-	n1->height = max(getHeight(n1->left), getHeight(n1->right)) + 1;
 	n1->left->height = max(getHeight(n1->left->left), getHeight(n1->left->right)) + 1;
+	n1->height = max(getHeight(n1->left), getHeight(n1->right)) + 1;
 
 	return n1;
 }

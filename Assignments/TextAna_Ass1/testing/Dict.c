@@ -128,8 +128,8 @@ Link rotateRight(Link n1)
 	n1->left = n2->right;
 	n2->right = n1;
 	// updating heights
-	n2->height = max(getHeight(n2->left), getHeight(n2->right)) + 1;
 	n2->right->height = max(getHeight(n2->right->left), getHeight(n2->right->right)) + 1;
+	n2->height = max(getHeight(n2->left), getHeight(n2->right)) + 1;
 	return n2;
 }
 
@@ -151,8 +151,8 @@ Link rotateLeft(Link n2)
 	n2->right = n1->left;
 	n1->left = n2;
 	// updating heights
-	n1->height = max(getHeight(n1->left), getHeight(n1->right)) + 1;
 	n1->left->height = max(getHeight(n1->left->left), getHeight(n1->left->right)) + 1;
+	n1->height = max(getHeight(n1->left), getHeight(n1->right)) + 1;
 	return n1;
 }
 
@@ -371,7 +371,7 @@ white_box(void)
 /////////////////
 
 	Dict gutenburg = newDict();	// 1 gutenburg Dict
-	in = fopen("/home/ason/proj/Comp2521_20/Assignments/TextAna_Ass1/data/0174.txt", "r");
+	in = fopen("/home/ason/proj/Comp2521_20/Assignments/TextAna_Ass1/data/4300.txt", "r");
 	if(in == NULL)
 	{
 		fprintf(stderr, "Can't open %s\n","2600.txt");
@@ -424,11 +424,11 @@ white_box(void)
 	}
 
 	fclose(in);
-	printf("%s %d\n", DictFind(gutenburg, "ladi")->word, DictFind(gutenburg, "ladi")->freq);
+	//printf("%s %d\n", DictFind(gutenburg, "ladi")->word, DictFind(gutenburg, "ladi")->freq);
 	int topN = findTopN(gutenburg, results, 100);
 	for(int i = 0; i < topN; i++)
 		printf("(%s, %d)\n", (*(results+i)).word, (*(results+i)).freq);
-	
+	printf("%d %d\n", getHeight(gutenburg->tree), getHeight(gutenburg->tree));
 	/*
 	Dict d = newDict();
 	DictInsert(d, "US");
