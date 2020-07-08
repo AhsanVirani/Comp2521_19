@@ -40,8 +40,7 @@ int  ScheduleCount(Schedule s) {
 // successfully added, and false otherwise.
 bool ScheduleAdd(Schedule s, Time t) {
     // TODO: Modify the following code
-    TreeInsert(s->times, t);
-    s->count++;
+	
     return true;
 }
 
