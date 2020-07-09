@@ -5,6 +5,13 @@
 #include <assert.h>
 
 #include "graph.h"
+#include "Queue.h"
+#include "Stack.h"
+#include "Item.h"
+
+// Global Variables
+int order;
+int *visited;
 
 // Graph Representation (Adjacency Matrix)
 typedef struct GraphRep
@@ -45,6 +52,52 @@ Graph newGraph(int nV)
 	assert(g != NULL);
 	g->nV = nV; g->nE = 0; g->edges = e;
 	return g;
+}
+
+// Breadth first traversal
+void breadth_first(Graph g, Vertex st)
+{
+	assert(validV(g, st));
+	visited = calloc(g->nV, sizeof(int));
+	assert(visited != NULL);
+	
+	Queue q = newQueue();
+	QueueJoin(q, st);
+	while(!QueueIsEmpty(q)) {
+		Vertex v = QueueLeave(q);
+		if(visited[v])	
+			continue;
+		visited[v] = 1;
+		printf("%d\n", v);
+		for(Vertex i = 0; i < g->nV; i++) {
+			if(!g->edges[v][i])
+				continue;
+			if(!visited[i])
+				QueueJoin(q, i);	
+		}
+	}
+}
+
+// Depth first traversal
+void depth_first(Graph g, Vertex st)
+{
+	assert(validV(g, st));
+	visited = calloc(g->nV, sizeof(int));
+	assert(visited != NULL);
+
+	Stack s = newStack();
+	StackPush(s, st);
+	while(!StackIsEmpty(s)) {
+		Vertex v = StackPop(s);
+		if(visited[v])	continue;
+		visited[v] = 1;
+		printf("%d\n", v);
+		for(Vertex i = g->nV - 1; i >= 0; i--) {
+			if(!g->edges[v][i])	continue;
+			if(!visited[i])
+				StackPush(s, i);
+		}
+	}
 }
 
 // add a new edge
@@ -123,10 +176,6 @@ void show(Graph g)
 		printf("\n");
 	}
 }
-
-// Global Variables
-int order;
-int *visited;
 
 void showVisited(Graph g)
 {
@@ -293,21 +342,33 @@ int hamiltonpath(Graph g, Vertex src, Vertex dest)
 
 int white_box(void)
 {
-	Graph g = newGraph(5);
+	Graph g = newGraph(7);
 	show(g);
 	Edge e1 = mkEdge(g, 0, 1);
-	Edge e2 = mkEdge(g, 1, 2);
-	Edge e3 = mkEdge(g, 2, 3);
+	Edge e2 = mkEdge(g, 0, 3);
+	Edge e3 = mkEdge(g, 0, 4);
+	Edge e4 = mkEdge(g, 0, 5);
+	Edge e5 = mkEdge(g, 1, 5);
+	Edge e6 = mkEdge(g, 2, 3);
+	Edge e7 = mkEdge(g, 2, 5);
+	Edge e8 = mkEdge(g, 2, 6);
+	Edge e9 = mkEdge(g, 4, 5);
+	Edge e10 = mkEdge(g, 5, 6);
 
 	insertE(g, e1);
 	insertE(g, e2);
 	insertE(g, e3);
+	insertE(g, e4);
+	insertE(g, e5);
+	insertE(g, e6);
+	insertE(g, e7);
+	insertE(g, e8);
+	insertE(g, e9);
+	insertE(g, e10);
 	
 	show(g);
-	dfsFindPath(g, 0, 2);
-	hasCycle(g);
-	components(g);
-	printf("%d\n", hamiltonpath(g, 0, 3));
+	printf("\n");
+	depth_first(g, 3);
 
 	return 0;
 }

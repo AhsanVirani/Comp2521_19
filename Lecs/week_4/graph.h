@@ -25,6 +25,8 @@ int neighbours(Graph, Vertex, Vertex);
 int edges(Graph, Edge *, int);
 void dropGraph(Graph);
 void show(Graph);
+void breadth_first(Graph, Vertex);
+void depth_first(Graph, Vertex);
 int dfsHaspPath(Graph, Vertex, Vertex);
 int dfsPathFind(Graph, Vertex, Vertex, int);
 void dfsFindPath(Graph, Vertex, Vertex);
