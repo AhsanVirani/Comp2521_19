@@ -37,6 +37,8 @@ void dfsComponents(Graph, Vertex, int);
 void components(Graph);
 int hamiltonpathCheck(Graph, Vertex, Vertex, int);
 int hamiltonpath(Graph, Vertex, Vertex);
+void depth_first_wrapper_R(Graph, Vertex);
+void depth_first_R(Graph, Vertex);
 
 int white_box(void);
 

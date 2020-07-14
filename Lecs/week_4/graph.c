@@ -100,6 +100,31 @@ void depth_first(Graph g, Vertex st)
 	}
 }
 
+// wrapper for recursive DFS func
+void depth_first_R(Graph g, Vertex st)
+{
+	assert(validV(g, st));
+	visited = calloc(g->nV, sizeof(int));
+	depth_first_wrapper_R(g, st);
+	printf("\n");
+	free(visited);
+}
+
+void depth_first_wrapper_R(Graph g, Vertex st)
+{
+	printf("%d", st);	
+	visited[st] = 1;
+
+	Vertex w;
+	for(w = 0; w < g->nV; w++) {
+		if(!neighbours(g, st, w)) continue;
+		if(visited[w])	continue;
+		printf("->");
+		depth_first_wrapper_R(g, w);
+	}
+	return;
+}
+
 // add a new edge
 void insertE(Graph g, Edge e)
 {
@@ -340,10 +365,19 @@ int hamiltonpath(Graph g, Vertex src, Vertex dest)
 	return res;
 }
 
+/*
+bool isEulerPath (Graph g, Edge e[], int nE)
+{
+
+
+
+}
+*/
+
 int white_box(void)
 {
 	Graph g = newGraph(7);
-	show(g);
+	//show(g);
 	Edge e1 = mkEdge(g, 0, 1);
 	Edge e2 = mkEdge(g, 0, 3);
 	Edge e3 = mkEdge(g, 0, 4);
@@ -366,9 +400,10 @@ int white_box(void)
 	insertE(g, e9);
 	insertE(g, e10);
 	
-	show(g);
-	printf("\n");
-	depth_first(g, 3);
+	//show(g);
+	//printf("\n");
+	depth_first(g, 1);
+	depth_first_R(g, 1);
 
 	return 0;
 }
