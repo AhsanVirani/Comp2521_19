@@ -113,21 +113,27 @@ int findPath (Graph g, Vertex src, Vertex dest, int max, int *path)
 {
 	assert (g != NULL && validV(g, src) && validV(g, dest));
 	
+	// Path of length 1 i.e. src to src
 	if(src == dest) {
 		path[0] = src;
 		return 1;
 	}
+
 	int *dist = calloc(g->nV, sizeof(int));
 	int *visited = calloc(g->nV, sizeof(int));
-	int * pathcpy = malloc(g->nV * sizeof(int));
-	for(int i=0; i < g->nV; i++)	pathcpy[i] = -1;
+	int *pathcpy = malloc(g->nV * sizeof(int));
+	int i;
+	for(i = 0; i < g->nV; i++)	pathcpy[i] = -1;
+
 	Queue q = newQueue();
 	QueueJoin(q, src);
 	pathcpy[src] = 0;
 
+
+	int PATH_FOUND = 0;	
 	while(!QueueIsEmpty(q)) {
 		Item v = QueueLeave(q);
-		if(v == dest) break;
+		if(PATH_FOUND) break;
 		Vertex w;	
 		for(w=0; w < g->nV; w++) {
 			if(!g->edges[v][w] || g->edges[v][w] > max)	continue;
@@ -136,23 +142,32 @@ int findPath (Graph g, Vertex src, Vertex dest, int max, int *path)
 				QueueJoin(q, w);
 				dist[w] = dist[v] + 1;
 				pathcpy[w] = v;
+				if(w == dest) {
+					PATH_FOUND = 1;
+					break;
+				}
 			}
 		}
 	}
 
-	int n = dist[dest];
 	if(dist[dest] > 0) {
+		i = dist[dest];
 		printf("%d\n", dist[dest]);	
-		path[n] = dest;
-	
-		n--;
+		path[i] = dest;
+		i--;
 		int destcpy = dest;
-		while(n >= 0) {
-			path[n] = pathcpy[destcpy];
+		while(i >= 0) {
+			path[i] = pathcpy[destcpy];
 			destcpy = pathcpy[destcpy];
-			n--;			
+			i--;			
 		}
+		free(dist); free(visited); free(pathcpy);
+		// Path found of length > 1
 		return dist[dest]+1;
 	}
+	free(dist); free(visited); free(pathcpy);
+	
+	// No path found
 	return 0;
 }
+
