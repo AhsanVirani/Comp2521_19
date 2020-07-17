@@ -10,59 +10,95 @@
 #include "Stack.h"
 #include "List.h"
 
-// graph representation (adjacency matrix)
-typedef struct GraphRep {
-   int   nV;    // #vertices
-   int   nE;    // #edges
-	int **edges; // adjacency matrix
+
+
+typedef struct GraphRep
+{
+	int nV;
+	int nE;
+	List *edges; // adjacency list rep. Edge is a verticle array of pointers storing ListRep
 } GraphRep;
 
-// check validity of Vertex
-int validV(Graph g, Vertex v)
-{
-   return (g != NULL && v >= 0 && v < g->nV);
-}
 
-// create an Edge value
-Edge mkEdge(Graph g, Vertex v, Vertex w)
-{
-   assert(validV(g,v) && validV(g,w));
-   Edge e = {v,w}; // struct assignment
-   // or  Edge e; e.v = v; e.w = w;
-   return e;
-}
-
-// are two vertices directly connected?
-bool adjacent(Graph g, Vertex v, Vertex w)
-{
-   assert(validV(g,v) && validV(g,w));
-    return (g->edges[v][w] != 0);
-}
-
-// create an empty graph
+// create new empty graph
 Graph newGraph(int nV)
 {
-   assert(nV > 0);
+	assert(nV >= 0);
+	Graph g = (Graph)malloc(nV*sizeof(GraphRep));
+	assert(g != NULL);
+	List *e = (List *)malloc(nV*sizeof(List));
+	assert(e != NULL);
+	
+	for(int i = 0; i < nV; i++) {
+		e[i] = newList();
+	}
+ 
+	g->nV = nV; g->nE = 0; g->edges = e;
+	return g;
+} 
 
-   int **e = malloc(nV * sizeof(int *));
-   assert(e != NULL);
-   for (int i = 0; i < nV; i++) {
-#if 1
-      e[i] = calloc(nV, sizeof(int));
-      assert(e[i] != NULL);
-#else
-      e[i] = malloc(nV * sizeof(int));
-      assert(e[i] != NULL);
-      for (int j = 0; j < nV; j++)
-         e[i][j] = 0;
-#endif
-   }
-   Graph g = malloc(sizeof(GraphRep));
-   assert(g != NULL);
+// Check validaity of Vertex
+int validV(Graph g, Vertex v)
+{
+	return (g != NULL && v >= 0 && v < g->nV);
+}
 
-   g->nV = nV;  g->nE = 0;  g->edges = e;
+// creates an edge
+Edge mkEdge(Graph g, Vertex v, Vertex w)
+{
+	assert(validV(g, v) && validV(g, w));
+	Edge e;
+	e.v = v;	e.w = w;
+	return e;
+}
 
-   return g;
+// create a new Edge
+void insertE(Graph g, Edge e)
+{
+	assert(validV(g, e.v) && validV(g, e.w));
+	if(ListSearch(g->edges[e.v], e.w) != NULL)	return;
+	ListInsert(g->edges[e.v], e.w);
+	ListInsert(g->edges[e.w], e.v);
+	g->nE++;	
+}
+
+// remove an edge from the graph
+void removeE(Graph g, Edge e)
+{
+	assert(validV(g, e.v) && validV(g, e.w));
+	if(ListSearch(g->edges[e.v], e.w) == NULL)	return;
+	ListDelete(g->edges[e.v], e.w);
+	ListDelete(g->edges[e.w], e.v);
+	g->nE--;
+}
+
+// Checks whether two vertices are directly connected
+int adjacent(Graph g, Vertex v, Vertex w)
+{
+	assert(validV(g, v) && validV(g, w));
+	return (ListSearch(g->edges[v], w) != NULL);
+}
+
+// Display the graph
+void show(Graph g)
+{
+	assert(g != NULL);
+	printf("nV:%d nE:%d\n", g->nV, g->nE);
+	for(int i =0; i < g->nV; i++) {
+		printf("Vertex %d is connected to ", i);
+		showList(g->edges[i]);
+		printf("\n");
+	}
+}
+
+// drop the graph and free memory occupid
+void dropGraph(Graph g)
+{
+	assert(g != NULL);
+	for(int i = 0; i < g->nV; i++)
+		dropList(g->edges[i]);
+	free(g->edges);
+	free(g);
 }
 
 // create a random graph
@@ -76,28 +112,6 @@ Graph newRandomGraph(int nV)
       }
    }
    return g;
-}
-
-// add a new edge
-void  insertE(Graph g, Edge e)
-{
-   assert(g != NULL);
-   assert(validV(g,e.v) && validV(g,e.w));
-   if (g->edges[e.v][e.w]) return;
-   g->edges[e.v][e.w] = 1;
-   g->edges[e.w][e.v] = 1;
-   g->nE++;
-}
-
-// delete an edge
-void  removeE(Graph g, Edge e)
-{
-   assert(g != NULL);
-   assert(validV(g,e.v) && validV(g,e.w));
-   if (!g->edges[e.v][e.w]) return;
-   g->edges[e.v][e.w] = 0;
-   g->edges[e.w][e.v] = 0;
-   g->nE--;
 }
 
 // returns #edges & array of edges
@@ -114,33 +128,6 @@ int edges(Graph g, Edge *es, int nE)
    }
 
    return 0;
-}
-
-// free memory associated with graph
-void dropGraph(Graph g)
-{
-   assert(g != NULL);
-   for (int i = 0; i < g->nV; i++)
-      free(g->edges[i]);
-   free(g->edges);
-   free(g);
-}
-
-// display a graph (not pretty)
-void show(Graph g)
-{
-   assert(g != NULL);
-   printf("Graph has V=%d and E=%d\n",g->nV,g->nE);
-   printf("V    Connected to\n");
-   printf("--   ------------\n");
-   int v, w;
-   for (v = 0; v < g->nV; v++) {
-      printf("%-3d ",v);
-      for (w = 0; w < g->nV; w++) {
-         if (adjacent(g,v,w)) printf(" %d",w);
-      }
-      printf("\n");
-   }
 }
 
 // Additions
@@ -278,7 +265,6 @@ void components(Graph g)
    }
 }
 
-
 // DFS path checker
 
 int dfsPathCheck(Graph g, Vertex v, Vertex dest)
@@ -302,8 +288,6 @@ int dfsHasPath(Graph g, Vertex src, Vertex dest)
    free(visited);
    return result;
 }
-
-
 
 // DFS path finder
 
@@ -345,9 +329,6 @@ void dfsFindPath(Graph g, Vertex src, Vertex dest)
    free(visited); free(path);
 }
 
-
-
-
 // BFS traversal
 
 void bfs(Graph g, Vertex v)
@@ -370,9 +351,6 @@ void bfs(Graph g, Vertex v)
       printf("  q=");showQueue(q);
    }
 }
-
-
-
 
 //BFS traversal with re-ordered visited array
 
@@ -401,11 +379,7 @@ void bfsShow(Graph g, Vertex v)
    printf("\n");
 }
 
-
-
-
 // BFS path checker
-
 int hasPath(Graph g, Vertex src, Vertex dest)
 {
    visited = calloc(g->nV,sizeof(int));
@@ -427,11 +401,7 @@ int hasPath(Graph g, Vertex src, Vertex dest)
    return isFound;
 }
 
-
-
-
 // iterative BFS algorithm to print path src...dest
-
 void findPath(Graph g, Vertex src, Vertex dest)
 {
    visited = calloc(g->nV,sizeof(int));
@@ -464,13 +434,8 @@ void findPath(Graph g, Vertex src, Vertex dest)
    }
 }
 
-
-
-
 // check for Hamilton path
-
 // visited [0..V-1] of bools
-
 int HamiltonR(Graph g, Vertex v, Vertex w, int d)
 {
    int t; 

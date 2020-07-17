@@ -365,14 +365,6 @@ int hamiltonpath(Graph g, Vertex src, Vertex dest)
 	return res;
 }
 
-/*
-bool isEulerPath (Graph g, Edge e[], int nE)
-{
-
-
-
-}
-*/
 
 int white_box(void)
 {
