@@ -8,7 +8,7 @@ typedef int Item;
 
 Heap newHeap(int);
 void HeapInsert(Heap, Item);
-void fixUp(Item a[], int);
+Item HeapDelete(Heap);
 void swap(Item a[], int, int);
 
 void white_box();

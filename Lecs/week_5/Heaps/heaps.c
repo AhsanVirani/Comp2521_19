@@ -4,6 +4,10 @@
 
 #include "heaps.h"
 
+// Static function declarations
+static void fixDown(Item a[], int, int);
+static void fixUp(Item a[], int);
+
 typedef int Item;
 // Heaps structure definition
 typedef struct HeapRep {
@@ -35,6 +39,7 @@ void HeapInsert(Heap h, Item it)
 	fixUp(h->Items, h->nitems);
 }
 
+static
 void fixUp(Item a[], int i)
 {
 	// Work until reach root. No node above so stop
@@ -53,7 +58,40 @@ void swap(Item a[], int i, int j)
 	a[j] = tmp;
 }
 
+// Deletion from heap (always remove root)
+Item HeapDelete(Heap h)
+{
+	Item top = h->Items[1];
+	// overwrite first by last
+	h->Items[1] = h->Items[h->nitems];
+	h->nitems--;
+	// move new root to correct position
+	fixDown(h->Items, 1, h->nitems);
+	return top;	
+}
+
+// a[i] is the new root. Need to put it into correct postion
+static
+void fixDown(Item a[], int i, int N)
+{
+	while(2*i <= N) {
+		// compute address of left child
+		int j = 2*i;
+		// choose the larger of two children
+		if(j < N && (a[j] < a[j+1]))
+			j++;
+		if(!(a[i] < a[j]))
+			break;
+		swap(a, i, j);
+		// move one level down
+		i = j;
+	}	
+}
+
+
 void white_box()
 {
 	return;	
 }
+
+
